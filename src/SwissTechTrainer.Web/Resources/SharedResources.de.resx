@@ -141,6 +141,45 @@
   <data name="Category_Behavioral" xml:space="preserve">
     <value>Verhalten &amp; Führung (STAR)</value>
   </data>
+  <data name="CategoryDesc_Coding" xml:space="preserve">
+    <value>Pragmatische Algorithmen, Zeit-/Raumkomplexität und idiomatische {0}-Strukturen.</value>
+  </data>
+  <data name="CategoryDesc_SystemDesign" xml:space="preserve">
+    <value>Verteiltes Servicedesign, Resilienz und Abwägung von Trade-offs.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_CSharp" xml:space="preserve">
+    <value>Speicherverwaltung, async/await-Interna, Garbage Collection und CLR-Leistung.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Python" xml:space="preserve">
+    <value>GIL, asyncio-Event-Loop, Generatoren/Dekoratoren und Speicherverwaltung.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Java" xml:space="preserve">
+    <value>JVM-Interna, Garbage Collectors (G1/ZGC) und JMM-Nebenläufigkeit.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Rust" xml:space="preserve">
+    <value>Ownership, Lifetimes, Borrow Checker und Zero-Cost-Abstraktionen.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Go" xml:space="preserve">
+    <value>Goroutinen, Channels, CSP-Nebenläufigkeit, Escape-Analyse und Interfaces.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_NodeJs" xml:space="preserve">
+    <value>V8-Interna, Event-Loop-Phasen, nicht-blockierende E/A und Stream-Verarbeitung.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Default" xml:space="preserve">
+    <value>Interna, Speichermodelle und Nebenläufigkeit in {0}.</value>
+  </data>
+  <data name="CategoryDesc_CleanCode" xml:space="preserve">
+    <value>Refactoring von Code Smells, SOLID-/idiomatische Prinzipien und technische Schulden in {0}.</value>
+  </data>
+  <data name="CategoryDesc_ApiDesign" xml:space="preserve">
+    <value>REST/gRPC-Verträge, Idempotenz, Wiederholungsrichtlinien und Circuit Breaker.</value>
+  </data>
+  <data name="CategoryDesc_Testing" xml:space="preserve">
+    <value>Unit-, Integrations- und Mutationstests in {0} mit striktem TDD.</value>
+  </data>
+  <data name="CategoryDesc_Behavioral" xml:space="preserve">
+    <value>Technische Führung, Konfliktlösung und architektonische Verantwortung mit STAR.</value>
+  </data>
   
   <!-- Difficulty Levels -->
   <data name="Level1_Label" xml:space="preserve">

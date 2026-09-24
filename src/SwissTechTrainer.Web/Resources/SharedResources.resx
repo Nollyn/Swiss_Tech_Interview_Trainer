@@ -141,6 +141,45 @@
   <data name="Category_Behavioral" xml:space="preserve">
     <value>Behavioral / Leadership (STAR)</value>
   </data>
+  <data name="CategoryDesc_Coding" xml:space="preserve">
+    <value>Pragmatic algorithms, time/space complexity, and idiomatic {0} structures.</value>
+  </data>
+  <data name="CategoryDesc_SystemDesign" xml:space="preserve">
+    <value>Distributed service design, resilience, and trade-off justifications.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_CSharp" xml:space="preserve">
+    <value>Memory management, async/await internals, GC, and CLR performance.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Python" xml:space="preserve">
+    <value>GIL, asyncio event loop, generators/decorators, and memory management.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Java" xml:space="preserve">
+    <value>JVM internals, Garbage Collectors (G1/ZGC), and JMM concurrency.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Rust" xml:space="preserve">
+    <value>Ownership, lifetimes, borrow checker, and zero-cost abstractions.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Go" xml:space="preserve">
+    <value>Goroutines, channels, CSP concurrency, escape analysis, and interfaces.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_NodeJs" xml:space="preserve">
+    <value>V8 internals, event loop phases, non-blocking I/O, and stream processing.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Default" xml:space="preserve">
+    <value>Internals, memory models, and concurrency in {0}.</value>
+  </data>
+  <data name="CategoryDesc_CleanCode" xml:space="preserve">
+    <value>Refactoring code smells, SOLID/idiomatic principles, and technical debt in {0}.</value>
+  </data>
+  <data name="CategoryDesc_ApiDesign" xml:space="preserve">
+    <value>REST/gRPC contracts, idempotency, retry policies, and circuit breakers.</value>
+  </data>
+  <data name="CategoryDesc_Testing" xml:space="preserve">
+    <value>Unit, integration, and mutation testing in {0} using strict TDD.</value>
+  </data>
+  <data name="CategoryDesc_Behavioral" xml:space="preserve">
+    <value>Technical leadership, conflict resolution, and architectural ownership using STAR.</value>
+  </data>
   
   <!-- Difficulty Levels -->
   <data name="Level1_Label" xml:space="preserve">

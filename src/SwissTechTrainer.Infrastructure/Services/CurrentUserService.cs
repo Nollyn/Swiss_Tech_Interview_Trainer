@@ -30,7 +30,7 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
         var user = await context.UserProfiles.FirstOrDefaultAsync(ct);
         if (user == null)
         {
-            user = UserProfile.Create(Username, "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
+            user = UserProfile.Create(Username, "candidate.zurich@swissdev.ch", "Senior Developer / Tech Lead (Zurich)");
             context.UserProfiles.Add(user);
             await context.SaveChangesAsync(ct);
         }

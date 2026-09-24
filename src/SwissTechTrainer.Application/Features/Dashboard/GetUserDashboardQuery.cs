@@ -16,10 +16,10 @@ public sealed record GetUserDashboardQuery(ProgrammingLanguage Language = Progra
 /// <summary>
 /// Handles retrieving or initializing candidate profile and calculating multi-dimensional category mastery.
 /// </summary>
-/// <param name="context">The database context.</param>
+/// <param name="contextFactory">The database context factory.</param>
 /// <param name="currentUserService">The current user service.</param>
 public sealed class GetUserDashboardQueryHandler(
-    IApplicationDbContext context,
+    IApplicationDbContextFactory contextFactory,
     ICurrentUserService currentUserService) : IRequestHandler<GetUserDashboardQuery, UserDashboardDto>
 {
     /// <summary>
@@ -32,6 +32,8 @@ public sealed class GetUserDashboardQueryHandler(
     {
         var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
         var targetLanguage = request.Language;
+
+        using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)

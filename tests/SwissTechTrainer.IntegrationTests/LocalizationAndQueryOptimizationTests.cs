@@ -32,6 +32,14 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
 
         services.AddLocalization();
 
+        services.AddDbContextFactory<AppDbContext>(opts =>
+        {
+            opts.UseSqlite($"Data Source={_dbName}", b =>
+            {
+                b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
+        });
+
         services.AddDbContext<AppDbContext>(opts =>
         {
             opts.UseSqlite($"Data Source={_dbName}", b =>
@@ -40,6 +48,7 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
             });
         });
 
+        services.AddSingleton<IApplicationDbContextFactory, ApplicationDbContextFactory>();
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton<ICodeFileParser, CodeFileParser>();
@@ -82,6 +91,17 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
     [InlineData("en", "PracticeLevelButton", "Practice Level {0}")]
     [InlineData("de", "PracticeLevelButton", "Stufe {0} üben")]
     [InlineData("es", "PracticeLevelButton", "Practicar Nivel {0}")]
+    [InlineData("en", "CategoryDesc_Coding", "Pragmatic algorithms")]
+    [InlineData("es", "CategoryDesc_Coding", "Algoritmos pragmáticos")]
+    [InlineData("de", "CategoryDesc_Coding", "Pragmatische Algorithmen")]
+    [InlineData("en", "CategoryDesc_SystemDesign", "Distributed service design")]
+    [InlineData("es", "CategoryDesc_SystemDesign", "Diseño de servicios distribuidos")]
+    [InlineData("de", "CategoryDesc_SystemDesign", "Verteiltes Servicedesign")]
+    [InlineData("es", "CategoryDesc_DotNetDeepDive_CSharp", "Gestión de memoria")]
+    [InlineData("es", "CategoryDesc_CleanCode", "Refactorización de code smells")]
+    [InlineData("es", "CategoryDesc_ApiDesign", "Contratos REST/gRPC")]
+    [InlineData("es", "CategoryDesc_Testing", "Pruebas unitarias")]
+    [InlineData("es", "CategoryDesc_Behavioral", "Liderazgo técnico")]
     public void StringLocalizer_ResolvesKeysCorrectly_ForSupportedCultures(string cultureName, string key, string expectedSubstring)
     {
         var previousCulture = CultureInfo.CurrentUICulture;

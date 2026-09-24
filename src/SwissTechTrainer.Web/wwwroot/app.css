@@ -95,3 +95,8 @@ body {
     justify-content: center;
     font-weight: bold;
 }
+
+.bg-purple {
+    background-color: #6f42c1 !important;
+    color: #ffffff !important;
+}

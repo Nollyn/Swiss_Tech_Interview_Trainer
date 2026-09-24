@@ -6,7 +6,7 @@ namespace SwissTechTrainer.Application.Common.Interfaces;
 /// <summary>
 /// Defines the persistence boundary and aggregate entity sets accessible to the Application layer.
 /// </summary>
-public interface IApplicationDbContext
+public interface IApplicationDbContext : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// Gets the database set for user profiles.

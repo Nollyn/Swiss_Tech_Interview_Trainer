@@ -26,9 +26,13 @@ public class EvaluationPipelineIntegrationTests : IAsyncLifetime
     {
         var services = new ServiceCollection();
 
+        services.AddDbContextFactory<AppDbContext>(opts =>
+            opts.UseSqlite($"Data Source={_dbName}"));
+
         services.AddDbContext<AppDbContext>(opts =>
             opts.UseSqlite($"Data Source={_dbName}"));
 
+        services.AddSingleton<IApplicationDbContextFactory, ApplicationDbContextFactory>();
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton<ICodeFileParser, CodeFileParser>();

@@ -93,7 +93,7 @@ else
                             }
                         </div>
 
-                        <p class="text-secondary small mb-3">@cat.ShortDescription</p>
+                        <p class="text-secondary small mb-3">@GetLocalizedCategoryDescription(cat)</p>
                     </div>
 
                     <div>
@@ -151,5 +151,30 @@ else
     private async Task LoadDashboardAsync()
     {
         _dashboard = await Mediator.Send(new GetUserDashboardQuery(_selectedLanguage));
+    }
+
+    private string GetLocalizedCategoryDescription(DashboardCategoryDto cat)
+    {
+        var langName = _selectedLanguage.GetDisplayName();
+        return cat.Category switch
+        {
+            CategoryType.Coding => string.Format(L["CategoryDesc_Coding"], langName),
+            CategoryType.SystemDesign => L["CategoryDesc_SystemDesign"],
+            CategoryType.DotNetDeepDive => _selectedLanguage switch
+            {
+                ProgrammingLanguage.CSharp => L["CategoryDesc_DotNetDeepDive_CSharp"],
+                ProgrammingLanguage.Python => L["CategoryDesc_DotNetDeepDive_Python"],
+                ProgrammingLanguage.Java => L["CategoryDesc_DotNetDeepDive_Java"],
+                ProgrammingLanguage.Rust => L["CategoryDesc_DotNetDeepDive_Rust"],
+                ProgrammingLanguage.Go => L["CategoryDesc_DotNetDeepDive_Go"],
+                ProgrammingLanguage.NodeJs => L["CategoryDesc_DotNetDeepDive_NodeJs"],
+                _ => string.Format(L["CategoryDesc_DotNetDeepDive_Default"], langName)
+            },
+            CategoryType.CleanCode => string.Format(L["CategoryDesc_CleanCode"], langName),
+            CategoryType.ApiDesign => L["CategoryDesc_ApiDesign"],
+            CategoryType.Testing => string.Format(L["CategoryDesc_Testing"], langName),
+            CategoryType.Behavioral => L["CategoryDesc_Behavioral"],
+            _ => cat.ShortDescription
+        };
     }
 }

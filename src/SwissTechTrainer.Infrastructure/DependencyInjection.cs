@@ -26,27 +26,30 @@ public static class DependencyInjection
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
         string dbProvider = configuration.GetValue<string>("DatabaseProvider") ?? "Sqlite";
 
-        if (string.Equals(dbProvider, "Postgres", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(connectionString))
+        Action<DbContextOptionsBuilder> configureDbContext = options =>
         {
-            services.AddDbContext<AppDbContext>(options =>
+            if (string.Equals(dbProvider, "Postgres", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(connectionString))
+            {
                 options.UseNpgsql(connectionString, b =>
                 {
                     b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                     b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                }));
-        }
-        else
-        {
-            // Default portable Sqlite for instant zero-dependency execution
-            string sqlitePath = connectionString ?? "Data Source=SwissTechTrainer.db";
-            services.AddDbContext<AppDbContext>(options =>
+                });
+            }
+            else
+            {
+                string sqlitePath = connectionString ?? "Data Source=SwissTechTrainer.db";
                 options.UseSqlite(sqlitePath, b =>
                 {
                     b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                     b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                }));
-        }
+                });
+            }
+        };
 
+        services.AddDbContextFactory<AppDbContext>(configureDbContext);
+        services.AddScoped<AppDbContext>(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext());
+        services.AddSingleton<IApplicationDbContextFactory, ApplicationDbContextFactory>();
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
         // 2. Application Services

@@ -12,47 +12,57 @@ namespace SwissTechTrainer.Application.Tests;
 
 public class GetUserDashboardQueryHandlerTests : IDisposable
 {
-    private readonly AppDbContext _context;
+    private readonly DbContextOptions<AppDbContext> _options;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IApplicationDbContextFactory _contextFactory;
     private readonly GetUserDashboardQueryHandler _sut;
     private readonly Guid _userId;
 
     public GetUserDashboardQueryHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        _options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite($"Data Source=InMemoryTest_Dash_{Guid.NewGuid():N}.db")
             .Options;
 
-        _context = new AppDbContext(options);
-        _context.Database.EnsureCreated();
+        using (var setupContext = new AppDbContext(_options))
+        {
+            setupContext.Database.EnsureCreated();
 
-        var user = new UserProfile("SwissProCandidate", "candidate@swiss.ch");
-        _userId = user.Id;
-        _context.UserProfiles.Add(user);
-        _context.SaveChanges();
+            var user = new UserProfile("SwissProCandidate", "candidate@swiss.ch");
+            _userId = user.Id;
+            setupContext.UserProfiles.Add(user);
+            setupContext.SaveChanges();
+        }
 
         _currentUserService = Substitute.For<ICurrentUserService>();
         _currentUserService.GetOrCreateCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(_userId);
         _currentUserService.Username.Returns("SwissProCandidate");
 
-        _sut = new GetUserDashboardQueryHandler(_context, _currentUserService);
+        _contextFactory = Substitute.For<IApplicationDbContextFactory>();
+        _contextFactory.CreateDbContext().Returns(_ => new AppDbContext(_options));
+        _contextFactory.CreateDbContextAsync(Arg.Any<CancellationToken>()).Returns(_ => Task.FromResult<IApplicationDbContext>(new AppDbContext(_options)));
+
+        _sut = new GetUserDashboardQueryHandler(_contextFactory, _currentUserService);
     }
 
     public void Dispose()
     {
-        _context.Database.EnsureDeleted();
-        _context.Dispose();
+        using var cleanupContext = new AppDbContext(_options);
+        cleanupContext.Database.EnsureDeleted();
     }
 
     [Fact]
     public async Task Handle_ReturnsAllSevenCategoriesWithCalculatedProgress()
     {
         // Arrange: record progress in Clean Code (pass 2 levels)
-        var user = await _context.UserProfiles.Include(u => u.Progresses).FirstAsync(u => u.Id == _userId);
-        var cleanCodeProg = user.GetOrCreateProgress(CategoryType.CleanCode);
-        cleanCodeProg.RecordAttempt(95.0, true);
-        cleanCodeProg.RecordAttempt(92.0, true);
-        await _context.SaveChangesAsync();
+        using (var arrangeContext = new AppDbContext(_options))
+        {
+            var user = await arrangeContext.UserProfiles.Include(u => u.Progresses).FirstAsync(u => u.Id == _userId);
+            var cleanCodeProg = user.GetOrCreateProgress(CategoryType.CleanCode);
+            cleanCodeProg.RecordAttempt(95.0, true);
+            cleanCodeProg.RecordAttempt(92.0, true);
+            await arrangeContext.SaveChangesAsync();
+        }
 
         var query = new GetUserDashboardQuery(ProgrammingLanguage.CSharp, _userId);
 

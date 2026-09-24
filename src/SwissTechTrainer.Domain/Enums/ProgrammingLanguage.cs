@@ -88,7 +88,7 @@ public static class ProgrammingLanguageExtensions
     /// </summary>
     public static string GetBadgeClass(this ProgrammingLanguage language) => language switch
     {
-        ProgrammingLanguage.CSharp => "bg-purple text-white",
+        ProgrammingLanguage.CSharp => "bg-primary text-white",
         ProgrammingLanguage.Python => "bg-warning text-dark",
         ProgrammingLanguage.Java => "bg-danger text-white",
         ProgrammingLanguage.Rust => "bg-secondary text-white",

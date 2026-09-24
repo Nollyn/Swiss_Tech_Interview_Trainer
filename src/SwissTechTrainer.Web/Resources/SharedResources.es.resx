@@ -141,6 +141,45 @@
   <data name="Category_Behavioral" xml:space="preserve">
     <value>Comportamental y Liderazgo (STAR)</value>
   </data>
+  <data name="CategoryDesc_Coding" xml:space="preserve">
+    <value>Algoritmos pragmáticos, complejidad temporal/espacial y estructuras idiomáticas de {0}.</value>
+  </data>
+  <data name="CategoryDesc_SystemDesign" xml:space="preserve">
+    <value>Diseño de servicios distribuidos, resiliencia y justificación de trade-offs.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_CSharp" xml:space="preserve">
+    <value>Gestión de memoria, funcionamiento interno de async/await, GC y rendimiento del CLR.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Python" xml:space="preserve">
+    <value>GIL, bucle de eventos asyncio, generadores/decoradores y gestión de memoria.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Java" xml:space="preserve">
+    <value>Funcionamiento interno de la JVM, recolectores de basura (G1/ZGC) y concurrencia JMM.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Rust" xml:space="preserve">
+    <value>Ownership, tiempos de vida (lifetimes), borrow checker y abstracciones de coste cero.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Go" xml:space="preserve">
+    <value>Goroutines, canales, concurrencia CSP, análisis de escape e interfaces.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_NodeJs" xml:space="preserve">
+    <value>Funcionamiento interno de V8, fases del event loop, E/S no bloqueante y procesamiento de streams.</value>
+  </data>
+  <data name="CategoryDesc_DotNetDeepDive_Default" xml:space="preserve">
+    <value>Funcionamiento interno, modelos de memoria y concurrencia en {0}.</value>
+  </data>
+  <data name="CategoryDesc_CleanCode" xml:space="preserve">
+    <value>Refactorización de code smells, principios SOLID/idiomáticos y deuda técnica en {0}.</value>
+  </data>
+  <data name="CategoryDesc_ApiDesign" xml:space="preserve">
+    <value>Contratos REST/gRPC, idempotencia, políticas de reintento y circuit breakers.</value>
+  </data>
+  <data name="CategoryDesc_Testing" xml:space="preserve">
+    <value>Pruebas unitarias, de integración y de mutación en {0} aplicando TDD estricto.</value>
+  </data>
+  <data name="CategoryDesc_Behavioral" xml:space="preserve">
+    <value>Liderazgo técnico, resolución de conflictos y propiedad arquitectónica usando STAR.</value>
+  </data>
   
   <!-- Difficulty Levels -->
   <data name="Level1_Label" xml:space="preserve">

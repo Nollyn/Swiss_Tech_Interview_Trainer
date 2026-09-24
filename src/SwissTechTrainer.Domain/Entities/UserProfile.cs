@@ -26,9 +26,9 @@ public class UserProfile
     public string Email { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Gets the target role description (e.g. Senior .NET Developer / Tech Lead in Zurich).
+    /// Gets the target role description (e.g. Senior Developer / Tech Lead in Zurich).
     /// </summary>
-    public string TargetRole { get; private set; } = "Senior .NET Developer / Tech Lead (Zurich)";
+    public string TargetRole { get; private set; } = "Senior Developer / Tech Lead (Zurich)";
 
     /// <summary>
     /// Gets the UTC creation timestamp.
@@ -61,12 +61,12 @@ public class UserProfile
     /// <param name="username">The candidate username.</param>
     /// <param name="email">The candidate email.</param>
     /// <param name="targetRole">The candidate's target job role.</param>
-    public UserProfile(string username, string email, string targetRole = "Senior .NET Developer / Tech Lead (Zurich)")
+    public UserProfile(string username, string email, string targetRole = "Senior Developer / Tech Lead (Zurich)")
     {
         Id = Guid.NewGuid();
         Username = string.IsNullOrWhiteSpace(username) ? "SwissCandidate" : username.Trim();
         Email = string.IsNullOrWhiteSpace(email) ? "candidate@swisstech.ch" : email.Trim();
-        TargetRole = string.IsNullOrWhiteSpace(targetRole) ? "Senior .NET Developer / Tech Lead (Zurich)" : targetRole.Trim();
+        TargetRole = string.IsNullOrWhiteSpace(targetRole) ? "Senior Developer / Tech Lead (Zurich)" : targetRole.Trim();
         CreatedAt = DateTime.UtcNow;
         LastActiveAt = DateTime.UtcNow;
 
@@ -87,7 +87,7 @@ public class UserProfile
     /// <param name="email">Candidate email.</param>
     /// <param name="targetRole">Target role.</param>
     /// <returns>A new <see cref="UserProfile"/> instance.</returns>
-    public static UserProfile Create(string username, string email, string targetRole = "Senior .NET Developer / Tech Lead (Zurich)")
+    public static UserProfile Create(string username, string email, string targetRole = "Senior Developer / Tech Lead (Zurich)")
     {
         return new UserProfile(username, email, targetRole);
     }
