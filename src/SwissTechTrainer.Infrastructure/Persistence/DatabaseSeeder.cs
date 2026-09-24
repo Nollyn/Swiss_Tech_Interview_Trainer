@@ -17,7 +17,7 @@ public static class DatabaseSeeder
     public static async Task SeedAsync(AppDbContext context, CancellationToken ct = default)
     {
         // 1. Seed default User Profile
-        var defaultUser = await context.UserProfiles.Include(u => u.Progresses).FirstOrDefaultAsync(ct);
+        var defaultUser = await context.UserProfiles.Include(u => u.Progresses).OrderBy(u => u.Id).FirstOrDefaultAsync(ct);
         if (defaultUser == null)
         {
             defaultUser = UserProfile.Create("SwissTechLead_Candidate", "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
@@ -31,7 +31,12 @@ public static class DatabaseSeeder
             {
                 foreach (CategoryType cat in Enum.GetValues<CategoryType>())
                 {
-                    defaultUser.GetOrCreateProgress(cat, lang);
+                    var existing = defaultUser.Progresses.FirstOrDefault(p => p.Category == cat && p.Language == lang);
+                    if (existing == null)
+                    {
+                        var newProg = defaultUser.GetOrCreateProgress(cat, lang);
+                        context.UserCategoryProgresses.Add(newProg);
+                    }
                 }
             }
             await context.SaveChangesAsync(ct);

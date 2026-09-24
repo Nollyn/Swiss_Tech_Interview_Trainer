@@ -45,7 +45,7 @@ app.UseRequestLocalization(localizationOptions);
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.EnsureCreatedAsync();
+    await DatabaseInitializer.InitializeAsync(context);
     await DatabaseSeeder.SeedAsync(context);
 }
 

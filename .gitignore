@@ -81,3 +81,6 @@ $RECYCLE.BIN/
 *.vsp
 *.vspx
 *.sap
+
+# Ignore cryptographic keys in Data Protection under development
+dp-keys/

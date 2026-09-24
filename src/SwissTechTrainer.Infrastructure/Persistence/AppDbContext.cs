@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SwissTechTrainer.Application.Common.Interfaces;
 using SwissTechTrainer.Domain.Entities;
 using SwissTechTrainer.Domain.ValueObjects;
@@ -91,18 +92,32 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             b.HasKey(e => e.Id);
             b.Property(e => e.LlmModelUsed).HasMaxLength(100);
 
+            var criteriaScoresComparer = new ValueComparer<IReadOnlyCollection<CriterionScore>>(
+                (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToList()
+            );
+
+            var codeSuggestionsComparer = new ValueComparer<IReadOnlyCollection<CodeDiffSnippet>>(
+                (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToList()
+            );
+
             // Store CriteriaScores and CodeSuggestions as JSON
             b.Property(e => e.CriteriaScores)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<List<CriterionScore>>(v, JsonOptions) ?? new List<CriterionScore>()
-                );
+                )
+                .Metadata.SetValueComparer(criteriaScoresComparer);
 
             b.Property(e => e.CodeSuggestions)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<List<CodeDiffSnippet>>(v, JsonOptions) ?? new List<CodeDiffSnippet>()
-                );
+                )
+                .Metadata.SetValueComparer(codeSuggestionsComparer);
         });
     }
 }
