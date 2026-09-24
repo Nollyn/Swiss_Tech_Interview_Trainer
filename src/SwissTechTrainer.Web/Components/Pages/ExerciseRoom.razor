@@ -1,0 +1,473 @@
+@page "/exercise/{CategoryName}"
+@using System.IO
+@inject IMediator Mediator
+@inject ICodeFileParser CodeFileParser
+@inject NavigationManager Navigation
+
+<PageTitle>@(Exercise?.Title ?? "Exercise Room") | Swiss Tech Interview Trainer</PageTitle>
+
+@if (IsLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+        <p class="text-secondary fs-5">@LoadingMessage</p>
+    </div>
+}
+else if (Exercise == null)
+{
+    <div class="alert alert-danger">
+        <h4>Exercise Not Found</h4>
+        <p>Could not load the requested category exercise.</p>
+        <a href="/" class="btn btn-outline-light">Back to Dashboard</a>
+    </div>
+}
+else
+{
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a href="/" class="text-secondary text-decoration-none small mb-1 d-inline-block">
+                <i class="bi bi-chevron-left"></i> Back to Dashboard
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <h3 class="fw-bold mb-0">@Exercise.CategoryDisplayName</h3>
+                <span class="badge bg-danger">@Exercise.LevelLabel</span>
+                @if (Exercise.HintModeActive)
+                {
+                    <span class="badge bg-warning text-dark"><i class="bi bi-lightbulb-fill"></i> Hint Mode Active</span>
+                }
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="GenerateSimilarVariantAsync" disabled="@IsEvaluating">
+                <i class="bi bi-shuffle me-1"></i> New Similar Variant
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace (Split Row) -->
+    <div class="row g-4 mb-4">
+        <!-- Left Column: Problem Description & Hints -->
+        <div class="col-lg-5">
+            <div class="card p-3 h-100 border-secondary">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+                    <h5 class="fw-bold text-info mb-0">@Exercise.Title</h5>
+                    <span class="badge bg-dark border small">@Exercise.ExpectedOutputFormat</span>
+                </div>
+
+                <div class="overflow-auto pe-2" style="max-height: 600px;">
+                    <MarkdownViewer Content="@Exercise.Description" />
+
+                    @if (!string.IsNullOrWhiteSpace(Exercise.Hints))
+                    {
+                        <div class="accordion mt-3" id="hintAccordion">
+                            <div class="accordion-item bg-dark border-warning">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button bg-dark text-warning collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hintCollapse">
+                                        <i class="bi bi-lightbulb-fill me-2"></i> Architectural Diagnostic Hints
+                                    </button>
+                                </h2>
+                                <div id="hintCollapse" class="accordion-collapse collapse @(Exercise.HintModeActive ? "show" : "")" data-bs-parent="#hintAccordion">
+                                    <div class="accordion-body small text-light bg-dark-subtle">
+                                        <MarkdownViewer Content="@Exercise.Hints" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Code Editor & Upload Workspace -->
+        <div class="col-lg-7">
+            <div class="card p-3 h-100 border-secondary">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-code-square text-danger me-2"></i>Candidate Solution</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="btn btn-sm btn-outline-info mb-0">
+                            <i class="bi bi-upload me-1"></i> Upload .cs / .zip
+                            <InputFile OnChange="HandleFileUploadAsync" class="d-none" accept=".cs,.zip,.txt,.md" />
+                        </label>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ResetStarterCode" disabled="@IsEvaluating">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(UploadStatusMessage))
+                {
+                    <div class="alert alert-info py-2 px-3 small mb-2">
+                        <i class="bi bi-info-circle me-1"></i> @UploadStatusMessage
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <textarea class="form-control code-editor-area rounded" 
+                              rows="16" 
+                              @bind="SubmittedCode" 
+                              @bind:event="oninput"
+                              disabled="@IsEvaluating"
+                              placeholder="// Write or paste your C# solution / architectural justification here..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Additional Architectural Notes / Assumptions:</label>
+                    <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" 
+                           @bind="AdditionalNotes" 
+                           disabled="@IsEvaluating"
+                           placeholder="e.g. Assuming SQL Server 2022 isolation levels, idempotent header cached for 24h..." />
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
+                    <span class="small text-muted">Quality Gate: Score &ge; 90.0% unlocks next level</span>
+                    <button class="btn btn-danger px-4 fw-bold" @onclick="SubmitSolutionAsync" disabled="@(IsEvaluating || string.IsNullOrWhiteSpace(SubmittedCode))">
+                        @if (IsEvaluating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Evaluating...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-lightning-charge-fill me-1"></i>
+                            <span>Submit for AI Evaluation</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Multi-Stage Evaluation Loading State -->
+    @if (IsEvaluating)
+    {
+        <div class="card p-4 border-info bg-dark-subtle mb-4">
+            <h5 class="text-info fw-bold mb-3"><i class="bi bi-cpu-fill me-2"></i>Evaluator-Optimizer Pipeline in Progress...</h5>
+            <div class="progress mb-3 bg-dark" style="height: 12px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: @(EvaluationStagePercent)%"></div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-info text-dark fs-6">Stage @(EvaluationStage)/4</span>
+                <span class="text-light fs-6 fw-semibold">@EvaluationStageMessage</span>
+            </div>
+        </div>
+    }
+
+    <!-- Evaluation Results View -->
+    @if (EvaluationResult != null && !IsEvaluating)
+    {
+        <div class="card p-4 mb-4 border-@(EvaluationResult.PassedThreshold ? "success" : "warning") bg-dark-subtle">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-3 border-bottom border-secondary gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="score-badge bg-@(EvaluationResult.PassedThreshold ? "success" : "warning") text-dark">
+                        <span class="fs-4">@EvaluationResult.DeterministicScore%</span>
+                        <span class="small text-uppercase">Score</span>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-bold">
+                                @(EvaluationResult.PassedThreshold ? "Quality Gate Passed!" : "Threshold Not Met (90% Required)")
+                            </h4>
+                            @if (EvaluationResult.PassedThreshold)
+                            {
+                                <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Unlocked Next Level</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark"><i class="bi bi-arrow-repeat"></i> Mastery Incomplete</span>
+                            }
+                        </div>
+                        <p class="text-secondary small mb-0 mt-1">
+                            Evaluated by: <strong>@EvaluationResult.ModelUsed</strong> in @EvaluationResult.ProcessingDurationMs ms
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    @if (EvaluationResult.PassedThreshold)
+                    {
+                        <button class="btn btn-success fw-bold px-4" @onclick="ContinueToNextLevelAsync">
+                            Continue to Level @((int)EvaluationResult.NewLevel) <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-warning fw-semibold" @onclick="RetryExercise">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Retry This Exercise
+                        </button>
+                        <button class="btn btn-outline-light fw-semibold" @onclick="GenerateSimilarVariantAsync">
+                            <i class="bi bi-shuffle me-1"></i> Try Similar Variant
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- General Feedback Markdown -->
+            <div class="mb-4">
+                <h6 class="fw-bold text-info"><i class="bi bi-chat-left-text me-2"></i>Evaluator Assessment & Rationale</h6>
+                <div class="p-3 bg-dark rounded border border-secondary">
+                    <MarkdownViewer Content="@EvaluationResult.GeneralFeedback" />
+                </div>
+            </div>
+
+            <!-- Detailed Rubric Breakdown Table -->
+            <div class="mb-4">
+                <h6 class="fw-bold text-info mb-3"><i class="bi bi-list-check me-2"></i>Deterministic Criteria Breakdown (0-100)</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover border-secondary align-middle">
+                        <thead>
+                            <tr class="text-secondary small">
+                                <th>Criterion</th>
+                                <th style="width: 100px;">Weight</th>
+                                <th style="width: 120px;">Score</th>
+                                <th>Cited Code Evidence</th>
+                                <th>Assessment Rationale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var crit in EvaluationResult.CriteriaBreakdown)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@crit.Name</td>
+                                    <td><span class="badge bg-dark-subtle border">@crit.Weight%</span></td>
+                                    <td>
+                                        <span class="badge bg-@(crit.Score >= 90 ? "success" : crit.Score >= 75 ? "warning text-dark" : "danger") fs-6">
+                                            @crit.Score%
+                                        </span>
+                                    </td>
+                                    <td class="small text-info-emphasis font-monospace">@crit.Evidence</td>
+                                    <td class="small text-secondary">@crit.Rationale</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actionable Code Suggestions (Before / After Diffs) -->
+            @if (EvaluationResult.CodeSuggestions != null && EvaluationResult.CodeSuggestions.Count > 0)
+            {
+                <div class="mb-2">
+                    <h6 class="fw-bold text-info mb-3"><i class="bi bi-braces me-2"></i>Actionable Code Refactoring Suggestions (Before / After)</h6>
+                    @foreach (var sugg in EvaluationResult.CodeSuggestions)
+                    {
+                        <CodeDiffViewer Title="@sugg.Title" 
+                                        OriginalCode="@sugg.OriginalCode" 
+                                        SuggestedCode="@sugg.SuggestedCode" 
+                                        Explanation="@sugg.Explanation" />
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Attempt History Accordion -->
+    @if (History != null && History.Count > 0)
+    {
+        <div class="card p-3 border-secondary mb-4">
+            <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-clock-history me-2"></i>Category Attempt History (@History.Count)</h6>
+            <div class="table-responsive">
+                <table class="table table-dark table-sm table-hover border-secondary small align-middle mb-0">
+                    <thead>
+                        <tr class="text-secondary">
+                            <th>Date</th>
+                            <th>Exercise</th>
+                            <th>Level</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in History)
+                        {
+                            <tr>
+                                <td>@item.SubmittedAt.ToLocalTime().ToString("g")</td>
+                                <td>@item.ExerciseTitle</td>
+                                <td><span class="badge bg-dark border">@item.Level</span></td>
+                                <td><strong>@item.DeterministicScore%</strong></td>
+                                <td>
+                                    @if (item.PassedThreshold)
+                                    {
+                                        <span class="badge bg-success">Passed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Retry</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string CategoryName { get; set; } = string.Empty;
+
+    private CategoryType Category;
+    private ExerciseDto? Exercise;
+    private List<CategoryAttemptHistoryItemDto>? History;
+    private EvaluationResultDto? EvaluationResult;
+
+    private string SubmittedCode = string.Empty;
+    private string AdditionalNotes = string.Empty;
+    private string UploadStatusMessage = string.Empty;
+
+    private bool IsLoading = true;
+    private string LoadingMessage = "Loading exercise...";
+
+    private bool IsEvaluating = false;
+    private int EvaluationStage = 1;
+    private int EvaluationStagePercent = 25;
+    private string EvaluationStageMessage = "Analyzing code structure and boundary conditions...";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Enum.TryParse<CategoryType>(CategoryName, true, out var parsedCategory))
+        {
+            Category = parsedCategory;
+            await LoadExerciseAndHistoryAsync();
+        }
+        else
+        {
+            IsLoading = false;
+            Exercise = null;
+        }
+    }
+
+    private async Task LoadExerciseAndHistoryAsync()
+    {
+        IsLoading = true;
+        LoadingMessage = $"Loading {Category.GetDisplayName()} challenge...";
+        EvaluationResult = null;
+
+        try
+        {
+            Exercise = await Mediator.Send(new GetOrCreateCurrentExerciseQuery(Category));
+            SubmittedCode = Exercise.StarterCode;
+            History = await Mediator.Send(new GetCategoryHistoryQuery(Category));
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ResetStarterCode()
+    {
+        if (Exercise != null)
+        {
+            SubmittedCode = Exercise.StarterCode;
+            UploadStatusMessage = "Reset to original starter code template.";
+        }
+    }
+
+    private async Task HandleFileUploadAsync(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        UploadStatusMessage = $"Uploading and parsing '{file.Name}'...";
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
+            SubmittedCode = await CodeFileParser.ParseUploadedContentAsync(stream, file.Name);
+            UploadStatusMessage = $"Successfully loaded '{file.Name}' ({file.Size} bytes).";
+        }
+        catch (Exception ex)
+        {
+            UploadStatusMessage = $"Upload error: {ex.Message}";
+        }
+    }
+
+    private async Task SubmitSolutionAsync()
+    {
+        if (Exercise == null || string.IsNullOrWhiteSpace(SubmittedCode)) return;
+
+        IsEvaluating = true;
+        EvaluationResult = null;
+
+        // Visual progress stage transitions
+        EvaluationStage = 1;
+        EvaluationStagePercent = 25;
+        EvaluationStageMessage = "Stage 1/4: Analyzing code structure, allocations & boundaries...";
+        StateHasChanged();
+        await Task.Delay(400);
+
+        EvaluationStage = 2;
+        EvaluationStagePercent = 50;
+        EvaluationStageMessage = "Stage 2/4: Applying category rubric & citing exact code evidence...";
+        StateHasChanged();
+        await Task.Delay(400);
+
+        EvaluationStage = 3;
+        EvaluationStagePercent = 75;
+        EvaluationStageMessage = "Stage 3/4: Calculating deterministic weighted score and level unlock gates...";
+        StateHasChanged();
+
+        try
+        {
+            var command = new SubmitExerciseCommand
+            {
+                ExerciseId = Exercise.Id,
+                SubmittedCode = SubmittedCode,
+                AdditionalNotes = AdditionalNotes,
+                SubmissionType = SubmissionType.SingleFile
+            };
+
+            EvaluationResult = await Mediator.Send(command);
+
+            EvaluationStage = 4;
+            EvaluationStagePercent = 100;
+            EvaluationStageMessage = "Stage 4/4: Evaluation complete!";
+            StateHasChanged();
+            await Task.Delay(300);
+
+            // Refresh history
+            History = await Mediator.Send(new GetCategoryHistoryQuery(Category));
+        }
+        catch (Exception ex)
+        {
+            UploadStatusMessage = $"Evaluation pipeline error: {ex.Message}";
+        }
+        finally
+        {
+            IsEvaluating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ContinueToNextLevelAsync()
+    {
+        await LoadExerciseAndHistoryAsync();
+    }
+
+    private void RetryExercise()
+    {
+        EvaluationResult = null;
+    }
+
+    private async Task GenerateSimilarVariantAsync()
+    {
+        IsLoading = true;
+        LoadingMessage = "Generating new challenge variant...";
+        EvaluationResult = null;
+
+        try
+        {
+            Exercise = await Mediator.Send(new GenerateNewExerciseVariantCommand(Category));
+            SubmittedCode = Exercise.StarterCode;
+            UploadStatusMessage = "Generated a fresh variant for the same difficulty level.";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

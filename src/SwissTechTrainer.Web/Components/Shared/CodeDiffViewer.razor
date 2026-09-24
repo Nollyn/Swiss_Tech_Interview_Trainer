@@ -1,0 +1,51 @@
+<div class="code-diff-card mb-4 border rounded p-3 bg-dark-subtle">
+    <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-file-earmark-diff text-info me-2 fs-5"></i>
+        <h6 class="mb-0 fw-bold text-info">@Title</h6>
+    </div>
+    
+    @if (!string.IsNullOrWhiteSpace(Explanation))
+    {
+        <p class="small text-secondary mb-3">@Explanation</p>
+    }
+
+    <div class="row g-2">
+        @if (!string.IsNullOrWhiteSpace(OriginalCode))
+        {
+            <div class="col-md-6">
+                <div class="diff-pane diff-before p-2 rounded">
+                    <div class="diff-header text-danger small fw-semibold mb-1">
+                        <i class="bi bi-x-circle me-1"></i> Original Code / Candidate Snippet
+                    </div>
+                    <pre class="mb-0"><code>@OriginalCode</code></pre>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(SuggestedCode))
+        {
+            <div class="col-md-6">
+                <div class="diff-pane diff-after p-2 rounded">
+                    <div class="diff-header text-success small fw-semibold mb-1">
+                        <i class="bi bi-check-circle me-1"></i> Suggested Refactoring (Swiss Production Standard)
+                    </div>
+                    <pre class="mb-0"><code>@SuggestedCode</code></pre>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string OriginalCode { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SuggestedCode { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Explanation { get; set; } = string.Empty;
+}
