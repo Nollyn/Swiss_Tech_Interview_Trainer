@@ -44,7 +44,7 @@ else
                                 @bind:after="OnLanguageChangedAsync">
                             @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
                             {
-                                <option value="@lang">@lang.GetDisplayName()</option>
+                                <option value="@lang" @key="lang">@lang.GetDisplayName()</option>
                             }
                         </select>
                     </div>
@@ -71,7 +71,7 @@ else
     <div class="row g-4">
         @foreach (var cat in _dashboard.Categories)
         {
-            <div class="col-md-6 col-xl-4">
+            <div class="col-md-6 col-xl-4" @key="cat.Category">
                 <div class="card category-card h-100 p-3 position-relative">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -87,7 +87,7 @@ else
 
                             @if (cat.HintModeActive)
                             {
-                                <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts">
+                                <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts" @key="@($"hint-{cat.Category}")">
                                     <i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]
                                 </span>
                             }
@@ -102,18 +102,18 @@ else
                             <span>@string.Format(L["CompletedOutOfFive"], cat.CompletedLevelsCount, cat.ProgressPercentage)</span>
                         </div>
                         <div class="progress mb-3 bg-black" style="height: 8px;">
-                            <div class="progress-bar bg-danger" role="progressbar" style="width: @(cat.ProgressPercentage)%;"></div>
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: @($"{cat.ProgressPercentage}%");"></div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
                             <div class="small text-muted">
                                 @if (cat.HighestScoreAchieved > 0)
                                 {
-                                    <span>@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
+                                    <span @key="@($"score-{cat.Category}")">@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
                                 }
                                 else
                                 {
-                                    <span>@L["NotStarted"]</span>
+                                    <span @key="@($"notstarted-{cat.Category}")">@L["NotStarted"]</span>
                                 }
                             </div>
                             <a href="exercise/@cat.Category?lang=@_selectedLanguage" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
@@ -145,6 +145,7 @@ else
     private async Task OnLanguageChangedAsync()
     {
         await LoadDashboardAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadDashboardAsync()

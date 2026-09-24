@@ -36,7 +36,10 @@ public sealed class GetUserDashboardQueryHandler(
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
             .Include(u => u.Submissions)
-            .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
+            .AsSplitQuery()
+            .Where(u => u.Id == targetUserId)
+            .OrderBy(u => u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (user == null)
         {

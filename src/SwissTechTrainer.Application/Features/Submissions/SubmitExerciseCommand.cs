@@ -82,7 +82,9 @@ public sealed class SubmitExerciseCommandHandler(
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
-            .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
+            .Where(u => u.Id == targetUserId)
+            .OrderBy(u => u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (user == null)
         {
@@ -92,7 +94,9 @@ public sealed class SubmitExerciseCommandHandler(
         }
 
         var exercise = await context.Exercises
-            .FirstOrDefaultAsync(e => e.Id == request.ExerciseId, cancellationToken)
+            .Where(e => e.Id == request.ExerciseId)
+            .OrderBy(e => e.Id)
+            .FirstOrDefaultAsync(cancellationToken)
             ?? throw new KeyNotFoundException($"Exercise with ID '{request.ExerciseId}' was not found.");
 
         // Create submission entity using factory

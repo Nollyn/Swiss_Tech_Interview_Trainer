@@ -16,7 +16,7 @@
             <option value="">@L["AllLanguages"]</option>
             @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
             {
-                <option value="@lang">@lang.GetDisplayName()</option>
+                <option value="@lang" @key="lang">@lang.GetDisplayName()</option>
             }
         </select>
         
@@ -63,7 +63,7 @@ else
                 <tbody>
                     @foreach (var (cat, item) in FilteredHistory)
                     {
-                        <tr>
+                        <tr @key="@(item.SubmissionId != Guid.Empty ? item.SubmissionId.ToString() : $"{cat}-{item.SubmittedAt.Ticks}")">
                             <td class="small text-secondary">@item.SubmittedAt.ToLocalTime().ToString("g")</td>
                             <td>
                                 <span class="badge @item.Language.GetBadgeClass()">@item.Language.GetDisplayName()</span>

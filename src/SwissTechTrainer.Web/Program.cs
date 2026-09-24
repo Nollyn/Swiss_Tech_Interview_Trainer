@@ -20,7 +20,7 @@ builder.Services.AddDataProtection()
     .SetApplicationName("SwissTechTrainer");
 
 // Configure ASP.NET Core I18N Localization
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddLocalization();
 
 // Add Application and Infrastructure DI layers
 builder.Services.AddApplication();

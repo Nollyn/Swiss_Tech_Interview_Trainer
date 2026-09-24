@@ -146,7 +146,7 @@ else
         <div class="card p-4 border-info bg-dark-subtle mb-4">
             <h5 class="text-info fw-bold mb-3"><i class="bi bi-cpu-fill me-2"></i>Evaluator-Optimizer Pipeline in Progress...</h5>
             <div class="progress mb-3 bg-dark" style="height: 12px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: @(EvaluationStagePercent)%"></div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: @($"{EvaluationStagePercent}%");"></div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="badge bg-info text-dark fs-6">Stage @(EvaluationStage)/4</span>
@@ -229,7 +229,7 @@ else
                         <tbody>
                             @foreach (var crit in EvaluationResult.CriteriaBreakdown)
                             {
-                                <tr>
+                                <tr @key="crit.Name">
                                     <td class="fw-semibold">@crit.Name</td>
                                     <td><span class="badge bg-dark-subtle border">@crit.Weight%</span></td>
                                     <td>
@@ -253,10 +253,12 @@ else
                     <h6 class="fw-bold text-info mb-3"><i class="bi bi-braces me-2"></i>Actionable Code Refactoring Suggestions (Before / After)</h6>
                     @foreach (var sugg in EvaluationResult.CodeSuggestions)
                     {
-                        <CodeDiffViewer Title="@sugg.Title" 
-                                        OriginalCode="@sugg.OriginalCode" 
-                                        SuggestedCode="@sugg.SuggestedCode" 
-                                        Explanation="@sugg.Explanation" />
+                        <div @key="sugg.Title">
+                            <CodeDiffViewer Title="@sugg.Title" 
+                                            OriginalCode="@sugg.OriginalCode" 
+                                            SuggestedCode="@sugg.SuggestedCode" 
+                                            Explanation="@sugg.Explanation" />
+                        </div>
                     }
                 </div>
             }
@@ -282,7 +284,7 @@ else
                     <tbody>
                         @foreach (var item in History)
                         {
-                            <tr>
+                            <tr @key="@(item.SubmissionId != Guid.Empty ? item.SubmissionId.ToString() : $"{item.ExerciseTitle}-{item.SubmittedAt.Ticks}")">
                                 <td>@item.SubmittedAt.ToLocalTime().ToString("g")</td>
                                 <td>@item.ExerciseTitle</td>
                                 <td><span class="badge bg-dark border">@item.Level</span></td>

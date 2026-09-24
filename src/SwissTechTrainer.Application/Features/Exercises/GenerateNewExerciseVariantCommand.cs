@@ -39,7 +39,9 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
-            .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
+            .Where(u => u.Id == targetUserId)
+            .OrderBy(u => u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (user == null)
         {

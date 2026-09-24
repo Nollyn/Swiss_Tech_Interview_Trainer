@@ -11,19 +11,19 @@
         <span class="d-none d-sm-inline small">@CurrentLanguageName</span>
     </button>
     <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="cultureDropdown">
-        <li>
+        <li @key="@("en")">
             <a class="dropdown-item @(CurrentCulture == "en" ? "active" : "") d-flex align-items-center gap-2" 
                href="@GetCultureChangeUri("en")">
                 <span>🇬🇧</span> English
             </a>
         </li>
-        <li>
+        <li @key="@("de")">
             <a class="dropdown-item @(CurrentCulture == "de" ? "active" : "") d-flex align-items-center gap-2" 
                href="@GetCultureChangeUri("de")">
                 <span>🇩🇪</span> Deutsch
             </a>
         </li>
-        <li>
+        <li @key="@("es")">
             <a class="dropdown-item @(CurrentCulture == "es" ? "active" : "") d-flex align-items-center gap-2" 
                href="@GetCultureChangeUri("es")">
                 <span>🇪🇸</span> Español

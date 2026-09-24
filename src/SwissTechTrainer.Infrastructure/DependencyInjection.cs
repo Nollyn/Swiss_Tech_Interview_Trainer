@@ -29,14 +29,22 @@ public static class DependencyInjection
         if (string.Equals(dbProvider, "Postgres", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(connectionString))
         {
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                options.UseNpgsql(connectionString, b =>
+                {
+                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                    b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                }));
         }
         else
         {
             // Default portable Sqlite for instant zero-dependency execution
             string sqlitePath = connectionString ?? "Data Source=SwissTechTrainer.db";
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(sqlitePath, b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                options.UseSqlite(sqlitePath, b =>
+                {
+                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                    b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                }));
         }
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());

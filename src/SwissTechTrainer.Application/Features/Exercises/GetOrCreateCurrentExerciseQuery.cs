@@ -39,7 +39,9 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
-            .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
+            .Where(u => u.Id == targetUserId)
+            .OrderBy(u => u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (user == null)
         {
