@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:8080"
+    volumes:
+      - ./dp-keys:/app/dp-keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - DatabaseProvider=Postgres

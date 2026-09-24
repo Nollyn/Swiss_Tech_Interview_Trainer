@@ -3,17 +3,28 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
+using Polly.Timeout;
 using SwissTechTrainer.Application.Common.Interfaces;
 using SwissTechTrainer.Application.Common.Models;
 
 namespace SwissTechTrainer.Infrastructure.LLM;
 
-public class OllamaLlmClient : ILLMClient
+/// <summary>
+/// Local LLM client implementation communicating with an Ollama endpoint (e.g. Llama-3 local).
+/// </summary>
+/// <param name="httpClient">The injected HTTP client instance.</param>
+/// <param name="options">Configuration options for Ollama endpoint parameters.</param>
+/// <param name="logger">Structured logger instance.</param>
+/// <param name="fallbackClient">Deterministic fallback client used when Ollama daemon is offline.</param>
+public class OllamaLlmClient(
+    HttpClient httpClient,
+    IOptions<LlmOptions> options,
+    ILogger<OllamaLlmClient> logger,
+    DeterministicMockLlmClient fallbackClient) : ILLMClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly LlmOptions _options;
-    private readonly ILogger<OllamaLlmClient> _logger;
-    private readonly ILLMClient _fallbackClient;
+    private readonly LlmOptions _options = options.Value;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -21,20 +32,32 @@ public class OllamaLlmClient : ILLMClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    private readonly ResiliencePipeline<HttpResponseMessage> _resiliencePipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
+        .AddRetry(new RetryStrategyOptions<HttpResponseMessage>
+        {
+            MaxRetryAttempts = 2,
+            Delay = TimeSpan.FromSeconds(1),
+            BackoffType = DelayBackoffType.Exponential,
+            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                .Handle<HttpRequestException>()
+                .Handle<TimeoutRejectedException>()
+                .HandleResult(res => (int)res.StatusCode >= 500),
+            OnRetry = args =>
+            {
+                logger.LogWarning(
+                    "Ollama API call retry #{AttemptNumber} due to {Reason}.",
+                    args.AttemptNumber,
+                    args.Outcome.Exception?.Message ?? args.Outcome.Result?.StatusCode.ToString() ?? "Unknown");
+                return ValueTask.CompletedTask;
+            }
+        })
+        .AddTimeout(TimeSpan.FromSeconds(options.Value.TimeoutSeconds > 0 ? options.Value.TimeoutSeconds : 60))
+        .Build();
+
+    /// <inheritdoc />
     public string ProviderName => $"Ollama Local ({_options.Model})";
 
-    public OllamaLlmClient(
-        HttpClient httpClient,
-        IOptions<LlmOptions> options,
-        ILogger<OllamaLlmClient> logger,
-        DeterministicMockLlmClient fallbackClient)
-    {
-        _httpClient = httpClient;
-        _options = options.Value;
-        _logger = logger;
-        _fallbackClient = fallbackClient;
-    }
-
+    /// <inheritdoc />
     public async Task<GeneratedExerciseDto> GenerateExerciseAsync(ExerciseGenerationContext context, CancellationToken ct = default)
     {
         string systemPrompt = LlmPromptTemplates.BuildExerciseGenerationSystemPrompt();
@@ -51,16 +74,17 @@ public class OllamaLlmClient : ILLMClient
                 return exercise;
             }
 
-            _logger.LogWarning("Ollama generated invalid exercise JSON. Falling back.");
-            return await _fallbackClient.GenerateExerciseAsync(context, ct);
+            logger.LogWarning("Ollama generated invalid exercise JSON. Falling back.");
+            return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed calling Ollama for exercise generation. Falling back.");
-            return await _fallbackClient.GenerateExerciseAsync(context, ct);
+            logger.LogError(ex, "Failed calling Ollama for exercise generation. Falling back.");
+            return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
     }
 
+    /// <inheritdoc />
     public async Task<LlmEvaluationResponseDto> EvaluateSubmissionAsync(EvaluationPromptContext context, CancellationToken ct = default)
     {
         string systemPrompt = LlmPromptTemplates.BuildEvaluationSystemPrompt();
@@ -77,13 +101,13 @@ public class OllamaLlmClient : ILLMClient
                 return evalResult with { ModelUsed = ProviderName };
             }
 
-            _logger.LogWarning("Ollama returned malformed evaluation JSON. Falling back.");
-            return await _fallbackClient.EvaluateSubmissionAsync(context, ct);
+            logger.LogWarning("Ollama returned malformed evaluation JSON. Falling back.");
+            return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed calling Ollama for submission evaluation. Falling back.");
-            return await _fallbackClient.EvaluateSubmissionAsync(context, ct);
+            logger.LogError(ex, "Failed calling Ollama for submission evaluation. Falling back.");
+            return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
     }
 
@@ -108,8 +132,12 @@ public class OllamaLlmClient : ILLMClient
         string jsonPayload = JsonSerializer.Serialize(payload);
         string endpoint = $"{_options.Endpoint.TrimEnd('/')}/api/chat";
 
-        using var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-        using var response = await _httpClient.PostAsync(endpoint, content, ct);
+        var response = await _resiliencePipeline.ExecuteAsync(async cancellation =>
+        {
+            using var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+            return await httpClient.PostAsync(endpoint, content, cancellation);
+        }, ct);
+
         response.EnsureSuccessStatusCode();
 
         string responseBody = await response.Content.ReadAsStringAsync(ct);

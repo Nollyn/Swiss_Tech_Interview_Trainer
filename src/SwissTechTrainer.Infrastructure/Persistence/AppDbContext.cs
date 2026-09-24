@@ -6,20 +6,30 @@ using SwissTechTrainer.Domain.ValueObjects;
 
 namespace SwissTechTrainer.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext, IApplicationDbContext
+/// <summary>
+/// Entity Framework Core database context implementation mapping Swiss Tech Trainer domain entities to PostgreSQL / SQLite relational tables.
+/// </summary>
+/// <param name="options">DbContext configuration options.</param>
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IApplicationDbContext
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
+    /// <inheritdoc />
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+
+    /// <inheritdoc />
     public DbSet<UserCategoryProgress> UserCategoryProgresses => Set<UserCategoryProgress>();
+
+    /// <inheritdoc />
     public DbSet<Exercise> Exercises => Set<Exercise>();
+
+    /// <inheritdoc />
     public DbSet<Submission> Submissions => Set<Submission>();
+
+    /// <inheritdoc />
     public DbSet<Evaluation> Evaluations => Set<Evaluation>();
 
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

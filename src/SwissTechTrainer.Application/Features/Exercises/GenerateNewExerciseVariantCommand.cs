@@ -7,43 +7,49 @@ using SwissTechTrainer.Domain.Enums;
 
 namespace SwissTechTrainer.Application.Features.Exercises;
 
+/// <summary>
+/// Command to request dynamic LLM generation of a new exercise variant for the candidate's current category and level.
+/// </summary>
+/// <param name="Category">The interview category dimension.</param>
+/// <param name="UserId">Optional user ID filter, defaulting to current ambient user.</param>
 public sealed record GenerateNewExerciseVariantCommand(CategoryType Category, Guid? UserId = null) : IRequest<ExerciseDto>;
 
-public sealed class GenerateNewExerciseVariantCommandHandler : IRequestHandler<GenerateNewExerciseVariantCommand, ExerciseDto>
+/// <summary>
+/// Handler responsible for orchestrating negative-context prompt assembly, LLM exercise generation, and persistence.
+/// </summary>
+/// <param name="context">The database context.</param>
+/// <param name="llmClient">The LLM provider client.</param>
+/// <param name="currentUserService">The current user service.</param>
+public sealed class GenerateNewExerciseVariantCommandHandler(
+    IApplicationDbContext context,
+    ILLMClient llmClient,
+    ICurrentUserService currentUserService) : IRequestHandler<GenerateNewExerciseVariantCommand, ExerciseDto>
 {
-    private readonly IApplicationDbContext _context;
-    private readonly ILLMClient _llmClient;
-    private readonly ICurrentUserService _currentUserService;
-
-    public GenerateNewExerciseVariantCommandHandler(
-        IApplicationDbContext context,
-        ILLMClient llmClient,
-        ICurrentUserService currentUserService)
-    {
-        _context = context;
-        _llmClient = llmClient;
-        _currentUserService = currentUserService;
-    }
-
+    /// <summary>
+    /// Handles generating a fresh non-repetitive exercise variant using negative prompting against prior exercises.
+    /// </summary>
+    /// <param name="request">The generation command.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A populated <see cref="ExerciseDto"/> representing the newly created exercise.</returns>
     public async Task<ExerciseDto> Handle(GenerateNewExerciseVariantCommand request, CancellationToken cancellationToken)
     {
-        var targetUserId = request.UserId ?? await _currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
+        var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
 
-        var user = await _context.UserProfiles
+        var user = await context.UserProfiles
             .Include(u => u.Progresses)
             .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
 
         if (user == null)
         {
-            user = new UserProfile(_currentUserService.Username, "candidate@swisstech.ch");
-            _context.UserProfiles.Add(user);
-            await _context.SaveChangesAsync(cancellationToken);
+            user = UserProfile.Create(currentUserService.Username, "candidate@swisstech.ch");
+            context.UserProfiles.Add(user);
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         var progress = user.GetOrCreateProgress(request.Category);
         var currentLevel = progress.CurrentLevel;
 
-        var latestExercise = await _context.Exercises
+        var latestExercise = await context.Exercises
             .Where(e => e.Category == request.Category && e.Level == currentLevel)
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -57,9 +63,9 @@ public sealed class GenerateNewExerciseVariantCommandHandler : IRequestHandler<G
             IncludeHintModeContext = progress.HintModeActive
         };
 
-        var generated = await _llmClient.GenerateExerciseAsync(genContext, cancellationToken);
+        var generated = await llmClient.GenerateExerciseAsync(genContext, cancellationToken);
 
-        var newExercise = new Exercise(
+        var newExercise = Exercise.Create(
             category: request.Category,
             level: currentLevel,
             title: generated.Title,
@@ -71,8 +77,8 @@ public sealed class GenerateNewExerciseVariantCommandHandler : IRequestHandler<G
             previousExerciseReferenceId: latestExercise?.Id
         );
 
-        _context.Exercises.Add(newExercise);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Exercises.Add(newExercise);
+        await context.SaveChangesAsync(cancellationToken);
 
         return new ExerciseDto
         {

@@ -7,44 +7,50 @@ using SwissTechTrainer.Domain.Enums;
 
 namespace SwissTechTrainer.Application.Features.Exercises;
 
+/// <summary>
+/// Query to retrieve the candidate's currently active exercise for a category, or synthesize a new one if not yet initialized or already passed.
+/// </summary>
+/// <param name="Category">The interview category dimension.</param>
+/// <param name="UserId">Optional user ID filter, defaulting to current ambient user.</param>
 public sealed record GetOrCreateCurrentExerciseQuery(CategoryType Category, Guid? UserId = null) : IRequest<ExerciseDto>;
 
-public sealed class GetOrCreateCurrentExerciseQueryHandler : IRequestHandler<GetOrCreateCurrentExerciseQuery, ExerciseDto>
+/// <summary>
+/// Handler that ensures idempotent exercise delivery across page refreshes while serving new AI exercises on progression.
+/// </summary>
+/// <param name="context">The database context.</param>
+/// <param name="llmClient">The LLM provider client.</param>
+/// <param name="currentUserService">The current user service.</param>
+public sealed class GetOrCreateCurrentExerciseQueryHandler(
+    IApplicationDbContext context,
+    ILLMClient llmClient,
+    ICurrentUserService currentUserService) : IRequestHandler<GetOrCreateCurrentExerciseQuery, ExerciseDto>
 {
-    private readonly IApplicationDbContext _context;
-    private readonly ILLMClient _llmClient;
-    private readonly ICurrentUserService _currentUserService;
-
-    public GetOrCreateCurrentExerciseQueryHandler(
-        IApplicationDbContext context,
-        ILLMClient llmClient,
-        ICurrentUserService currentUserService)
-    {
-        _context = context;
-        _llmClient = llmClient;
-        _currentUserService = currentUserService;
-    }
-
+    /// <summary>
+    /// Handles resolving or generating the candidate's active exercise.
+    /// </summary>
+    /// <param name="request">The get-or-create query.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A populated <see cref="ExerciseDto"/> representing the current exercise.</returns>
     public async Task<ExerciseDto> Handle(GetOrCreateCurrentExerciseQuery request, CancellationToken cancellationToken)
     {
-        var targetUserId = request.UserId ?? await _currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
+        var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
 
-        var user = await _context.UserProfiles
+        var user = await context.UserProfiles
             .Include(u => u.Progresses)
             .FirstOrDefaultAsync(u => u.Id == targetUserId, cancellationToken);
 
         if (user == null)
         {
-            user = new UserProfile(_currentUserService.Username, "candidate@swisstech.ch");
-            _context.UserProfiles.Add(user);
-            await _context.SaveChangesAsync(cancellationToken);
+            user = UserProfile.Create(currentUserService.Username, "candidate@swisstech.ch");
+            context.UserProfiles.Add(user);
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         var progress = user.GetOrCreateProgress(request.Category);
         var currentLevel = progress.CurrentLevel;
 
         // Find the latest exercise for this category and level
-        var latestExercise = await _context.Exercises
+        var latestExercise = await context.Exercises
             .Where(e => e.Category == request.Category && e.Level == currentLevel)
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -52,13 +58,13 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler : IRequestHandler<Get
         // If an exercise exists, check if user has passed it
         if (latestExercise != null)
         {
-            var userSubmissions = await _context.Submissions
+            var userSubmissions = await context.Submissions
                 .Include(s => s.Evaluation)
                 .Where(s => s.ExerciseId == latestExercise.Id && s.UserId == targetUserId)
                 .OrderByDescending(s => s.SubmittedAt)
                 .ToListAsync(cancellationToken);
 
-            bool alreadyPassedThisExercise = userSubmissions.Any(s => s.Evaluation != null && s.Evaluation.PassedThreshold);
+            var alreadyPassedThisExercise = userSubmissions.Any(s => s.Evaluation != null && s.Evaluation.PassedThreshold);
 
             // If user hasn't passed it yet, keep serving this exercise so reload doesn't wipe their exercise
             if (!alreadyPassedThisExercise)
@@ -77,9 +83,9 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler : IRequestHandler<Get
             IncludeHintModeContext = progress.HintModeActive
         };
 
-        var generated = await _llmClient.GenerateExerciseAsync(genContext, cancellationToken);
+        var generated = await llmClient.GenerateExerciseAsync(genContext, cancellationToken);
 
-        var newExercise = new Exercise(
+        var newExercise = Exercise.Create(
             category: request.Category,
             level: currentLevel,
             title: generated.Title,
@@ -91,8 +97,8 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler : IRequestHandler<Get
             previousExerciseReferenceId: latestExercise?.Id
         );
 
-        _context.Exercises.Add(newExercise);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Exercises.Add(newExercise);
+        await context.SaveChangesAsync(cancellationToken);
 
         return MapToDto(newExercise, progress.HintModeActive);
     }

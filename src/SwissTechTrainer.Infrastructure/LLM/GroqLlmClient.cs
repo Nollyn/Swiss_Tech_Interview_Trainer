@@ -5,17 +5,29 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using Polly.Timeout;
 using SwissTechTrainer.Application.Common.Interfaces;
 using SwissTechTrainer.Application.Common.Models;
 
 namespace SwissTechTrainer.Infrastructure.LLM;
 
-public class GroqLlmClient : ILLMClient
+/// <summary>
+/// Production LLM client implementation communicating with Groq Cloud endpoints, protected by a Polly v8 resilience pipeline.
+/// </summary>
+/// <param name="httpClient">The injected HTTP client instance.</param>
+/// <param name="options">Configuration options for Groq API parameters and resilience.</param>
+/// <param name="logger">Structured logger instance.</param>
+/// <param name="fallbackClient">Deterministic fallback client used when API keys are absent or outages occur.</param>
+public class GroqLlmClient(
+    HttpClient httpClient,
+    IOptions<LlmOptions> options,
+    ILogger<GroqLlmClient> logger,
+    DeterministicMockLlmClient fallbackClient) : ILLMClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly LlmOptions _options;
-    private readonly ILogger<GroqLlmClient> _logger;
-    private readonly ILLMClient _fallbackClient;
+    private readonly LlmOptions _options = options.Value;
     private static readonly SemaphoreSlim Throttler = new(2, 2);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -24,31 +36,52 @@ public class GroqLlmClient : ILLMClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    private readonly ResiliencePipeline<HttpResponseMessage> _resiliencePipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
+        .AddRetry(new RetryStrategyOptions<HttpResponseMessage>
+        {
+            MaxRetryAttempts = Math.Max(1, options.Value.MaxRetriesOnRateLimit),
+            Delay = TimeSpan.FromMilliseconds(Math.Max(500, options.Value.InitialBackoffDelayMs)),
+            BackoffType = DelayBackoffType.Exponential,
+            UseJitter = true,
+            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                .Handle<HttpRequestException>()
+                .Handle<TimeoutRejectedException>()
+                .HandleResult(res => res.StatusCode == HttpStatusCode.TooManyRequests ||
+                                     res.StatusCode == HttpStatusCode.RequestTimeout ||
+                                     (int)res.StatusCode >= 500),
+            OnRetry = args =>
+            {
+                logger.LogWarning(
+                    "Groq API call retry #{AttemptNumber} due to {Reason}. Waiting {DelayMs} ms.",
+                    args.AttemptNumber,
+                    args.Outcome.Exception?.Message ?? args.Outcome.Result?.StatusCode.ToString() ?? "Unknown",
+                    args.RetryDelay.TotalMilliseconds);
+                return ValueTask.CompletedTask;
+            }
+        })
+        .AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
+        {
+            FailureRatio = 0.5,
+            SamplingDuration = TimeSpan.FromSeconds(30),
+            MinimumThroughput = 4,
+            BreakDuration = TimeSpan.FromSeconds(15),
+            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                .Handle<HttpRequestException>()
+                .HandleResult(res => (int)res.StatusCode >= 500 || res.StatusCode == HttpStatusCode.TooManyRequests)
+        })
+        .AddTimeout(TimeSpan.FromSeconds(options.Value.TimeoutSeconds > 0 ? options.Value.TimeoutSeconds : 60))
+        .Build();
+
+    /// <inheritdoc />
     public string ProviderName => $"Groq Cloud ({_options.Model})";
 
-    public GroqLlmClient(
-        HttpClient httpClient,
-        IOptions<LlmOptions> options,
-        ILogger<GroqLlmClient> logger,
-        DeterministicMockLlmClient fallbackClient)
-    {
-        _httpClient = httpClient;
-        _options = options.Value;
-        _logger = logger;
-        _fallbackClient = fallbackClient;
-
-        if (!string.IsNullOrWhiteSpace(_options.ApiKey))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
-        }
-    }
-
+    /// <inheritdoc />
     public async Task<GeneratedExerciseDto> GenerateExerciseAsync(ExerciseGenerationContext context, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            _logger.LogWarning("No Groq API key configured. Falling back to deterministic generator.");
-            return await _fallbackClient.GenerateExerciseAsync(context, ct);
+            logger.LogWarning("No Groq API key configured. Falling back to deterministic generator.");
+            return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
 
         string systemPrompt = LlmPromptTemplates.BuildExerciseGenerationSystemPrompt();
@@ -56,7 +89,7 @@ public class GroqLlmClient : ILLMClient
 
         try
         {
-            string rawResponse = await ExecuteWithRetryAsync(systemPrompt, userPrompt, ct);
+            string rawResponse = await ExecuteWithResilienceAsync(systemPrompt, userPrompt, ct);
             string cleanJson = ExtractJsonContent(rawResponse);
 
             var exercise = JsonSerializer.Deserialize<GeneratedExerciseDto>(cleanJson, JsonOptions);
@@ -65,22 +98,23 @@ public class GroqLlmClient : ILLMClient
                 return exercise;
             }
 
-            _logger.LogWarning("Groq response JSON did not populate required exercise fields. Falling back.");
-            return await _fallbackClient.GenerateExerciseAsync(context, ct);
+            logger.LogWarning("Groq response JSON did not populate required exercise fields. Falling back.");
+            return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling Groq for exercise generation. Falling back to mock client.");
-            return await _fallbackClient.GenerateExerciseAsync(context, ct);
+            logger.LogError(ex, "Error calling Groq for exercise generation. Falling back to mock client.");
+            return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
     }
 
+    /// <inheritdoc />
     public async Task<LlmEvaluationResponseDto> EvaluateSubmissionAsync(EvaluationPromptContext context, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            _logger.LogWarning("No Groq API key configured. Falling back to deterministic evaluation.");
-            return await _fallbackClient.EvaluateSubmissionAsync(context, ct);
+            logger.LogWarning("No Groq API key configured. Falling back to deterministic evaluation.");
+            return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
 
         string systemPrompt = LlmPromptTemplates.BuildEvaluationSystemPrompt();
@@ -88,7 +122,7 @@ public class GroqLlmClient : ILLMClient
 
         try
         {
-            string rawResponse = await ExecuteWithRetryAsync(systemPrompt, userPrompt, ct);
+            string rawResponse = await ExecuteWithResilienceAsync(systemPrompt, userPrompt, ct);
             string cleanJson = ExtractJsonContent(rawResponse);
 
             var evalResult = JsonSerializer.Deserialize<LlmEvaluationResponseDto>(cleanJson, JsonOptions);
@@ -97,84 +131,63 @@ public class GroqLlmClient : ILLMClient
                 return evalResult with { ModelUsed = ProviderName };
             }
 
-            _logger.LogWarning("Groq evaluation JSON was empty or malformed. Falling back.");
-            return await _fallbackClient.EvaluateSubmissionAsync(context, ct);
+            logger.LogWarning("Groq evaluation JSON was empty or malformed. Falling back.");
+            return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling Groq for submission evaluation. Falling back to mock client.");
-            return await _fallbackClient.EvaluateSubmissionAsync(context, ct);
+            logger.LogError(ex, "Error calling Groq for submission evaluation. Falling back to mock client.");
+            return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
     }
 
-    private async Task<string> ExecuteWithRetryAsync(string systemPrompt, string userPrompt, CancellationToken ct)
+    private async Task<string> ExecuteWithResilienceAsync(string systemPrompt, string userPrompt, CancellationToken ct)
     {
         await Throttler.WaitAsync(ct);
         try
         {
-            int maxRetries = Math.Max(1, _options.MaxRetriesOnRateLimit);
-            int delayMs = Math.Max(500, _options.InitialBackoffDelayMs);
-
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            var payload = new
             {
-                try
+                model = _options.Model,
+                messages = new[]
                 {
-                    var payload = new
-                    {
-                        model = _options.Model,
-                        messages = new[]
-                        {
-                            new { role = "system", content = systemPrompt },
-                            new { role = "user", content = userPrompt }
-                        },
-                        temperature = _options.Temperature,
-                        max_tokens = _options.MaxTokens,
-                        response_format = new { type = "json_object" }
-                    };
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = userPrompt }
+                },
+                temperature = _options.Temperature,
+                max_tokens = _options.MaxTokens,
+                response_format = new { type = "json_object" }
+            };
 
-                    string jsonPayload = JsonSerializer.Serialize(payload);
-                    using var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.Endpoint.TrimEnd('/')}/chat/completions")
-                    {
-                        Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-                    };
+            string jsonPayload = JsonSerializer.Serialize(payload);
 
-                    using var response = await _httpClient.SendAsync(request, ct);
-
-                    if (response.StatusCode == HttpStatusCode.TooManyRequests) // 429 Rate Limit
-                    {
-                        _logger.LogWarning("Groq API rate limit hit (429). Attempt {Attempt}/{MaxRetries}. Backing off for {Delay}ms.", attempt, maxRetries, delayMs);
-                        if (attempt == maxRetries)
-                        {
-                            throw new HttpRequestException($"Groq API rate limit exceeded after {maxRetries} attempts.");
-                        }
-
-                        await Task.Delay(delayMs, ct);
-                        delayMs *= 2; // Exponential backoff
-                        continue;
-                    }
-
-                    response.EnsureSuccessStatusCode();
-
-                    string body = await response.Content.ReadAsStringAsync(ct);
-                    using var doc = JsonDocument.Parse(body);
-                    var choices = doc.RootElement.GetProperty("choices");
-                    if (choices.GetArrayLength() > 0)
-                    {
-                        var content = choices[0].GetProperty("message").GetProperty("content").GetString();
-                        return content ?? string.Empty;
-                    }
-
-                    throw new InvalidOperationException("Groq returned empty choices array.");
-                }
-                catch (HttpRequestException ex) when (attempt < maxRetries)
+            var httpResponse = await _resiliencePipeline.ExecuteAsync(async cancellation =>
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.Endpoint.TrimEnd('/')}/chat/completions")
                 {
-                    _logger.LogWarning(ex, "Transient error calling Groq. Retrying in {Delay}ms...", delayMs);
-                    await Task.Delay(delayMs, ct);
-                    delayMs *= 2;
+                    Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
+                };
+
+                if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
                 }
+
+                return await httpClient.SendAsync(request, cancellation);
+            }, ct);
+
+            httpResponse.EnsureSuccessStatusCode();
+
+            string body = await httpResponse.Content.ReadAsStringAsync(ct);
+            using var doc = JsonDocument.Parse(body);
+            var choices = doc.RootElement.GetProperty("choices");
+            if (choices.GetArrayLength() > 0)
+            {
+                var content = choices[0].GetProperty("message").GetProperty("content").GetString();
+                return content ?? string.Empty;
             }
 
-            throw new InvalidOperationException("Exhausted retries calling Groq API.");
+            throw new InvalidOperationException("Groq returned empty choices array.");
         }
         finally
         {

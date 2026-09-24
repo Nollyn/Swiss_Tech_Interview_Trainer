@@ -4,15 +4,23 @@ using SwissTechTrainer.Domain.Enums;
 
 namespace SwissTechTrainer.Infrastructure.Persistence;
 
+/// <summary>
+/// Initializes and seeds default candidate profile data and baseline Level 1 exercises across all 7 Swiss hiring dimensions.
+/// </summary>
 public static class DatabaseSeeder
 {
+    /// <summary>
+    /// Seeds initial user profile and baseline exercises into the database if not already populated.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="ct">Cancellation token.</param>
     public static async Task SeedAsync(AppDbContext context, CancellationToken ct = default)
     {
         // 1. Seed default User Profile
         var defaultUser = await context.UserProfiles.Include(u => u.Progresses).FirstOrDefaultAsync(ct);
         if (defaultUser == null)
         {
-            defaultUser = new UserProfile("SwissTechLead_Candidate", "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
+            defaultUser = UserProfile.Create("SwissTechLead_Candidate", "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
             context.UserProfiles.Add(defaultUser);
             await context.SaveChangesAsync(ct);
         }

@@ -4,6 +4,9 @@ using SwissTechTrainer.Application.Common.Interfaces;
 
 namespace SwissTechTrainer.Infrastructure.Services;
 
+/// <summary>
+/// Parser service that extracts and formats single-file and multi-file zip archives for AI evaluation prompts.
+/// </summary>
 public class CodeFileParser : ICodeFileParser
 {
     private static readonly HashSet<string> AllowedTextExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -11,6 +14,7 @@ public class CodeFileParser : ICodeFileParser
         ".cs", ".txt", ".md", ".json", ".xml", ".sql", ".yaml", ".yml", ".proto"
     };
 
+    /// <inheritdoc />
     public async Task<string> ParseUploadedContentAsync(Stream fileStream, string fileName, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(fileStream);

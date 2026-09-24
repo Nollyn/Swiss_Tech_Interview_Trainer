@@ -1,10 +1,22 @@
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.DataProtection;
 using SwissTechTrainer.Application;
 using SwissTechTrainer.Infrastructure;
 using SwissTechTrainer.Infrastructure.Persistence;
 using SwissTechTrainer.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Data Protection with disk key persistence to prevent SignalR keyring invalidation on container restart
+var keysDirectory = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "dp-keys"));
+if (!keysDirectory.Exists)
+{
+    keysDirectory.Create();
+}
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(keysDirectory)
+    .SetApplicationName("SwissTechTrainer");
 
 // Add Application and Infrastructure DI layers
 builder.Services.AddApplication();

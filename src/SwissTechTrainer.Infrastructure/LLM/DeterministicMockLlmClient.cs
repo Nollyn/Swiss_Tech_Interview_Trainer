@@ -5,10 +5,15 @@ using SwissTechTrainer.Domain.Services;
 
 namespace SwissTechTrainer.Infrastructure.LLM;
 
+/// <summary>
+/// High-fidelity deterministic simulator used in test suites and offline demo environments.
+/// </summary>
 public class DeterministicMockLlmClient : ILLMClient
 {
+    /// <inheritdoc />
     public string ProviderName => "Deterministic-Mock-LLM (Offline/Test Engine)";
 
+    /// <inheritdoc />
     public Task<GeneratedExerciseDto> GenerateExerciseAsync(ExerciseGenerationContext context, CancellationToken ct = default)
     {
         int levelNum = (int)context.Level;
@@ -56,6 +61,7 @@ public class ProductionSolution
         return Task.FromResult(exercise);
     }
 
+    /// <inheritdoc />
     public Task<LlmEvaluationResponseDto> EvaluateSubmissionAsync(EvaluationPromptContext context, CancellationToken ct = default)
     {
         var officialRubrics = CategoryRubricCatalog.GetRubricForCategory(context.Category);
@@ -65,7 +71,6 @@ public class ProductionSolution
         string code = context.SubmittedCode ?? string.Empty;
         bool hasGoodLength = code.Length > 200;
         bool hasDefensiveChecks = code.Contains("throw", StringComparison.OrdinalIgnoreCase) || code.Contains("null", StringComparison.OrdinalIgnoreCase) || code.Contains("Argument", StringComparison.OrdinalIgnoreCase);
-        bool hasCleanNaming = !code.Contains("foo", StringComparison.OrdinalIgnoreCase) && !code.Contains("temp", StringComparison.OrdinalIgnoreCase);
         bool hasModernFeatures = code.Contains("async", StringComparison.OrdinalIgnoreCase) || code.Contains("Span", StringComparison.OrdinalIgnoreCase) || code.Contains("record", StringComparison.OrdinalIgnoreCase) || code.Contains("pattern", StringComparison.OrdinalIgnoreCase);
 
         double baseScore = hasGoodLength ? 92.0 : 78.0;

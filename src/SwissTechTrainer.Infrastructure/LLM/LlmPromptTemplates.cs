@@ -5,8 +5,15 @@ using SwissTechTrainer.Domain.Services;
 
 namespace SwissTechTrainer.Infrastructure.LLM;
 
+/// <summary>
+/// Provides structured system and user prompt builders for LLM exercise synthesis and candidate code evaluation.
+/// </summary>
 public static class LlmPromptTemplates
 {
+    /// <summary>
+    /// Builds the system prompt enforcing JSON schema, role positioning, and Swiss market criteria for exercise generation.
+    /// </summary>
+    /// <returns>The formatted system prompt string.</returns>
     public static string BuildExerciseGenerationSystemPrompt()
     {
         return """
@@ -30,6 +37,11 @@ JSON SCHEMA:
 """;
     }
 
+    /// <summary>
+    /// Builds the user prompt containing target category, level, rubrics, negative context, and hint mode triggers.
+    /// </summary>
+    /// <param name="context">The exercise generation context.</param>
+    /// <returns>The formatted user prompt string.</returns>
     public static string BuildExerciseGenerationUserPrompt(ExerciseGenerationContext context)
     {
         var categoryName = context.Category.GetDisplayName();
@@ -67,6 +79,10 @@ Provide only the valid JSON response.
 """;
     }
 
+    /// <summary>
+    /// Builds the system prompt for candidate submission evaluation following the Evaluator-Optimizer pattern.
+    /// </summary>
+    /// <returns>The formatted evaluator system prompt string.</returns>
     public static string BuildEvaluationSystemPrompt()
     {
         return """
@@ -101,6 +117,11 @@ JSON SCHEMA:
 """;
     }
 
+    /// <summary>
+    /// Builds the user prompt for evaluating candidate code against rubrics and starter code.
+    /// </summary>
+    /// <param name="context">The evaluation prompt context.</param>
+    /// <returns>The formatted evaluator user prompt string.</returns>
     public static string BuildEvaluationUserPrompt(EvaluationPromptContext context)
     {
         var categoryName = context.Category.GetDisplayName();

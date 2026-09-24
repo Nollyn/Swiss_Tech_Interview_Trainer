@@ -5,19 +5,21 @@ using SwissTechTrainer.Infrastructure.Persistence;
 
 namespace SwissTechTrainer.Infrastructure.Services;
 
-public class CurrentUserService : ICurrentUserService
+/// <summary>
+/// Service resolving or persisting the ambient single-user candidate session for the application.
+/// </summary>
+/// <param name="context">The database context.</param>
+public class CurrentUserService(AppDbContext context) : ICurrentUserService
 {
-    private readonly AppDbContext _context;
     private Guid? _cachedUserId;
 
+    /// <inheritdoc />
     public Guid UserId => _cachedUserId ?? Guid.Empty;
+
+    /// <inheritdoc />
     public string Username => "SwissTechLead_Candidate";
 
-    public CurrentUserService(AppDbContext context)
-    {
-        _context = context;
-    }
-
+    /// <inheritdoc />
     public async Task<Guid> GetOrCreateCurrentUserIdAsync(CancellationToken ct = default)
     {
         if (_cachedUserId.HasValue && _cachedUserId.Value != Guid.Empty)
@@ -25,12 +27,12 @@ public class CurrentUserService : ICurrentUserService
             return _cachedUserId.Value;
         }
 
-        var user = await _context.UserProfiles.FirstOrDefaultAsync(ct);
+        var user = await context.UserProfiles.FirstOrDefaultAsync(ct);
         if (user == null)
         {
-            user = new UserProfile(Username, "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
-            _context.UserProfiles.Add(user);
-            await _context.SaveChangesAsync(ct);
+            user = UserProfile.Create(Username, "candidate.zurich@swissdev.ch", "Senior .NET Developer / Tech Lead (Zurich)");
+            context.UserProfiles.Add(user);
+            await context.SaveChangesAsync(ct);
         }
 
         _cachedUserId = user.Id;

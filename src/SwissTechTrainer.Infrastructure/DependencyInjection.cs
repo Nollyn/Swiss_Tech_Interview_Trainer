@@ -9,8 +9,17 @@ using SwissTechTrainer.Infrastructure.Services;
 
 namespace SwissTechTrainer.Infrastructure;
 
+/// <summary>
+/// Provides extension methods for registering Infrastructure dependencies (EF Core, LLM Provider strategies, file parsers, and user services).
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers database contexts, HTTP clients with Polly resilience, and interchangeable LLM strategies.
+    /// </summary>
+    /// <param name="services">The service collection to register into.</param>
+    /// <param name="configuration">Application configuration.</param>
+    /// <returns>The same service collection for chaining.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // 1. Database Configuration (Postgres default with SQLite fallback for offline local runs)
