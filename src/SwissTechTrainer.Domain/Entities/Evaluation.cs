@@ -27,6 +27,11 @@ public class Evaluation
     public Guid SubmissionId { get; private set; }
 
     /// <summary>
+    /// Gets the programming language evaluated in this assessment.
+    /// </summary>
+    public ProgrammingLanguage Language { get; private set; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
     /// Gets the current processing status of the evaluation.
     /// </summary>
     public EvaluationStatus Status { get; private set; } = EvaluationStatus.Pending;
@@ -85,14 +90,16 @@ public class Evaluation
     /// Initializes a new instance of the <see cref="Evaluation"/> entity in a pending state.
     /// </summary>
     /// <param name="submissionId">The target submission ID.</param>
+    /// <param name="language">The programming language evaluated.</param>
     /// <exception cref="ArgumentException">Thrown when submissionId is empty.</exception>
-    public Evaluation(Guid submissionId)
+    public Evaluation(Guid submissionId, ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
         if (submissionId == Guid.Empty)
             throw new ArgumentException("SubmissionId cannot be empty.", nameof(submissionId));
 
         Id = Guid.NewGuid();
         SubmissionId = submissionId;
+        Language = language;
         Status = EvaluationStatus.Pending;
         EvaluatedAt = DateTime.UtcNow;
     }
@@ -101,10 +108,11 @@ public class Evaluation
     /// Factory method to create a new pending <see cref="Evaluation"/> entity.
     /// </summary>
     /// <param name="submissionId">The target submission ID.</param>
+    /// <param name="language">The programming language evaluated.</param>
     /// <returns>A new <see cref="Evaluation"/> instance in Pending status.</returns>
-    public static Evaluation CreatePending(Guid submissionId)
+    public static Evaluation CreatePending(Guid submissionId, ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        return new Evaluation(submissionId);
+        return new Evaluation(submissionId, language);
     }
 
     /// <summary>

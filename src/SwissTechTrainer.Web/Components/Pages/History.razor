@@ -1,18 +1,29 @@
 @page "/history"
 @inject IMediator Mediator
 
-<PageTitle>Attempt History | Swiss Tech Interview Trainer</PageTitle>
+<PageTitle>@L["AttemptHistoryTitle"] | @L["AppTitle"]</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
         <a href="/" class="text-secondary text-decoration-none small mb-1 d-inline-block">
-            <i class="bi bi-chevron-left"></i> Back to Dashboard
+            <i class="bi bi-chevron-left"></i> @L["BackToDashboard"]
         </a>
-        <h3 class="fw-bold mb-0"><i class="bi bi-clock-history text-danger me-2"></i>Candidate Evaluation History</h3>
+        <h3 class="fw-bold mb-0"><i class="bi bi-clock-history text-danger me-2"></i>@L["AttemptHistoryTitle"]</h3>
     </div>
-    <span class="badge bg-dark-subtle border text-secondary px-3 py-2">
-        <i class="bi bi-person-badge me-1"></i> SwissTechLead_Candidate
-    </span>
+    
+    <div class="d-flex align-items-center gap-2">
+        <select class="form-select form-select-sm bg-dark text-light border-secondary" @bind="SelectedLanguageFilter" @bind:after="ApplyFilter">
+            <option value="">@L["AllLanguages"]</option>
+            @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
+            {
+                <option value="@lang">@lang.GetDisplayName()</option>
+            }
+        </select>
+        
+        <span class="badge bg-dark-subtle border text-secondary px-3 py-2">
+            <i class="bi bi-person-badge me-1"></i> SwissTechLead_Candidate
+        </span>
+    </div>
 </div>
 
 @if (IsLoading)
@@ -22,14 +33,14 @@
         <p class="text-secondary mt-2">Loading attempt records...</p>
     </div>
 }
-else if (AllHistory == null || AllHistory.Count == 0)
+else if (FilteredHistory == null || FilteredHistory.Count == 0)
 {
     <div class="card p-5 text-center border-secondary">
         <i class="bi bi-journal-x text-secondary fs-1 mb-3"></i>
         <h5>No Submissions Recorded Yet</h5>
         <p class="text-secondary">Start practicing exercises across any of the 7 interview categories to build your evaluation portfolio.</p>
         <div>
-            <a href="/" class="btn btn-danger px-4 fw-semibold">Go to Dashboard</a>
+            <a href="/" class="btn btn-danger px-4 fw-semibold">@L["BackToDashboard"]</a>
         </div>
     </div>
 }
@@ -40,21 +51,25 @@ else
             <table class="table table-dark table-hover border-secondary align-middle">
                 <thead>
                     <tr class="text-secondary small">
-                        <th>Timestamp</th>
+                        <th>@L["Date"]</th>
+                        <th>Language</th>
                         <th>Category</th>
                         <th>Exercise Title</th>
                         <th>Level</th>
-                        <th>Deterministic Score</th>
-                        <th>Quality Gate Status</th>
+                        <th>@L["Score"]</th>
+                        <th>@L["Status"]</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var (cat, item) in AllHistory)
+                    @foreach (var (cat, item) in FilteredHistory)
                     {
                         <tr>
                             <td class="small text-secondary">@item.SubmittedAt.ToLocalTime().ToString("g")</td>
                             <td>
-                                <span class="badge bg-dark text-light border">@cat.GetDisplayName()</span>
+                                <span class="badge @item.Language.GetBadgeClass()">@item.Language.GetDisplayName()</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark text-light border">@cat.GetDisplayName(item.Language)</span>
                             </td>
                             <td class="fw-semibold">@item.ExerciseTitle</td>
                             <td><span class="badge bg-secondary">@item.Level</span></td>
@@ -66,11 +81,11 @@ else
                             <td>
                                 @if (item.PassedThreshold)
                                 {
-                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Level Unlocked (&ge;90%)</span>
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> @L["Passed"] (&ge;90%)</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-arrow-repeat me-1"></i> Retry Required</span>
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-arrow-repeat me-1"></i> @L["Failed"]</span>
                                 }
                             </td>
                         </tr>
@@ -84,6 +99,8 @@ else
 @code {
     private bool IsLoading = true;
     private List<(CategoryType Category, CategoryAttemptHistoryItemDto Item)> AllHistory = new();
+    private List<(CategoryType Category, CategoryAttemptHistoryItemDto Item)> FilteredHistory = new();
+    private string SelectedLanguageFilter { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,10 +118,23 @@ else
             }
 
             AllHistory = combined.OrderByDescending(x => x.Item.SubmittedAt).ToList();
+            ApplyFilter();
         }
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedLanguageFilter) || !Enum.TryParse<ProgrammingLanguage>(SelectedLanguageFilter, out var lang))
+        {
+            FilteredHistory = AllHistory;
+        }
+        else
+        {
+            FilteredHistory = AllHistory.Where(h => h.Item.Language == lang).ToList();
         }
     }
 }

@@ -80,6 +80,11 @@ public sealed record EvaluationResultDto
     public CategoryType Category { get; init; }
 
     /// <summary>
+    /// Gets the programming language of the evaluated exercise.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
     /// Gets the formatted category display name.
     /// </summary>
     public string CategoryDisplayName { get; init; } = string.Empty;
@@ -174,6 +179,11 @@ public sealed record CategoryAttemptHistoryItemDto
     /// Gets the exercise title.
     /// </summary>
     public string ExerciseTitle { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the programming language of the attempt.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
 
     /// <summary>
     /// Gets the difficulty level attempted.

@@ -61,7 +61,7 @@ public class GetOrCreateCurrentExerciseQueryHandlerTests : IDisposable
         _context.Exercises.Add(existingExercise);
         await _context.SaveChangesAsync();
 
-        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.DotNetDeepDive, _userId);
+        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.DotNetDeepDive, ProgrammingLanguage.CSharp, _userId);
 
         // Act
         var result = await _sut.Handle(query, CancellationToken.None);
@@ -85,7 +85,7 @@ public class GetOrCreateCurrentExerciseQueryHandlerTests : IDisposable
                 ExpectedOutputFormat = ".cs"
             });
 
-        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.Coding, _userId);
+        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.Coding, ProgrammingLanguage.CSharp, _userId);
 
         // Act
         var result = await _sut.Handle(query, CancellationToken.None);

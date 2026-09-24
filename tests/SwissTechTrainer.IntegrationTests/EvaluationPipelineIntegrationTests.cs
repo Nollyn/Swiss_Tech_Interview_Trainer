@@ -122,4 +122,57 @@ public class PrivateClientFeeStrategy : IFeeStrategy
         updatedCleanCode.CompletedLevelsCount.Should().Be(1);
         updatedCleanCode.ProgressPercentage.Should().Be(20.0); // 1/5
     }
+
+    [Fact]
+    public async Task MultiLanguage_PythonAndRust_ProgressesIndependentlyWithCorrectRubrics()
+    {
+        // 1. Candidate starts Python Deep Dive challenge
+        var pythonExercise = await _mediator.Send(new GetOrCreateCurrentExerciseQuery(CategoryType.DotNetDeepDive, ProgrammingLanguage.Python));
+        pythonExercise.Should().NotBeNull();
+        pythonExercise.Language.Should().Be(ProgrammingLanguage.Python);
+        pythonExercise.CategoryDisplayName.Should().Contain("Python");
+
+        // 2. Candidate submits Python solution
+        string pythonSolution = """
+import asyncio
+from typing import Optional
+
+class SwissTradeEngine:
+    def __init__(self, currency: str = "CHF"):
+        if not currency:
+            raise ValueError("Currency required")
+        self.currency = currency
+        self._lock = asyncio.Lock()
+
+    async def execute_trade_async(self, amount: float) -> bool:
+        if amount <= 0:
+            raise ValueError("Invalid trade amount")
+        async with self._lock:
+            await asyncio.sleep(0.001)
+            return True
+""";
+
+        var pythonResult = await _mediator.Send(new SubmitExerciseCommand
+        {
+            ExerciseId = pythonExercise.Id,
+            SubmittedCode = pythonSolution,
+            AdditionalNotes = "Asyncio lock and typing implemented."
+        });
+
+        pythonResult.PassedThreshold.Should().BeTrue();
+        pythonResult.Language.Should().Be(ProgrammingLanguage.Python);
+        pythonResult.CriteriaBreakdown.Should().Contain(c => c.Name.Contains("GIL") || c.Name.Contains("Asyncio"));
+
+        // 3. Verify Python dashboard shows progression
+        var pythonDashboard = await _mediator.Send(new GetUserDashboardQuery(ProgrammingLanguage.Python));
+        var pythonDeepDive = pythonDashboard.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        pythonDeepDive.CurrentLevel.Should().Be(DifficultyLevel.Level2);
+        pythonDeepDive.CompletedLevelsCount.Should().Be(1);
+
+        // 4. Verify Rust track is still at Level 1 (zero crosstalk)
+        var rustDashboard = await _mediator.Send(new GetUserDashboardQuery(ProgrammingLanguage.Rust));
+        var rustDeepDive = rustDashboard.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        rustDeepDive.CurrentLevel.Should().Be(DifficultyLevel.Level1);
+        rustDeepDive.CompletedLevelsCount.Should().Be(0);
+    }
 }

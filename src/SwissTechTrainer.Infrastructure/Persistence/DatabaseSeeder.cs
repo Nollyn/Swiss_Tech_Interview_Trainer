@@ -24,6 +24,18 @@ public static class DatabaseSeeder
             context.UserProfiles.Add(defaultUser);
             await context.SaveChangesAsync(ct);
         }
+        else
+        {
+            // Ensure progress is initialized for all categories across all languages
+            foreach (ProgrammingLanguage lang in Enum.GetValues<ProgrammingLanguage>())
+            {
+                foreach (CategoryType cat in Enum.GetValues<CategoryType>())
+                {
+                    defaultUser.GetOrCreateProgress(cat, lang);
+                }
+            }
+            await context.SaveChangesAsync(ct);
+        }
 
         // 2. Seed Level 1 initial exercises across all 7 categories if none exist
         if (!await context.Exercises.AnyAsync(ct))

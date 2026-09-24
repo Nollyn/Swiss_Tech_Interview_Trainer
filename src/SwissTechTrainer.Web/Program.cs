@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
 using SwissTechTrainer.Application;
 using SwissTechTrainer.Infrastructure;
 using SwissTechTrainer.Infrastructure.Persistence;
@@ -18,6 +19,9 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(keysDirectory)
     .SetApplicationName("SwissTechTrainer");
 
+// Configure ASP.NET Core I18N Localization
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 // Add Application and Infrastructure DI layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -28,6 +32,15 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+// Configure Request Localization middleware
+var supportedCultures = new[] { "en", "de", "es" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
+
 // Ensure database is initialized & seed data applied
 using (var scope = app.Services.CreateScope())
 {
@@ -35,6 +48,26 @@ using (var scope = app.Services.CreateScope())
     await context.Database.EnsureCreatedAsync();
     await DatabaseSeeder.SeedAsync(context);
 }
+
+// Culture switching endpoint that sets .AspNetCore.Culture cookie
+app.MapGet("/api/culture/set", (string culture, string? redirectUri, HttpContext httpContext) =>
+{
+    if (!string.IsNullOrWhiteSpace(culture))
+    {
+        httpContext.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddYears(1),
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax
+            }
+        );
+    }
+
+    return Results.LocalRedirect(string.IsNullOrWhiteSpace(redirectUri) ? "/" : redirectUri);
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

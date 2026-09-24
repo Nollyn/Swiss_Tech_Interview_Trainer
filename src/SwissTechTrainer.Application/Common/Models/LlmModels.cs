@@ -13,6 +13,11 @@ public sealed record ExerciseGenerationContext
     public CategoryType Category { get; init; }
 
     /// <summary>
+    /// Gets the target backend programming language.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
     /// Gets the target difficulty level.
     /// </summary>
     public DifficultyLevel Level { get; init; }
@@ -73,6 +78,11 @@ public sealed record EvaluationPromptContext
     /// Gets the interview category.
     /// </summary>
     public CategoryType Category { get; init; }
+
+    /// <summary>
+    /// Gets the candidate's programming language.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
 
     /// <summary>
     /// Gets the difficulty level.

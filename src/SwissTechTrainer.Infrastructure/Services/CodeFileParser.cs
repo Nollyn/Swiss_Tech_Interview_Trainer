@@ -11,7 +11,8 @@ public class CodeFileParser : ICodeFileParser
 {
     private static readonly HashSet<string> AllowedTextExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".cs", ".txt", ".md", ".json", ".xml", ".sql", ".yaml", ".yml", ".proto"
+        ".cs", ".py", ".java", ".rs", ".go", ".js", ".ts", ".jsx", ".tsx",
+        ".txt", ".md", ".json", ".xml", ".sql", ".yaml", ".yml", ".proto"
     };
 
     /// <inheritdoc />

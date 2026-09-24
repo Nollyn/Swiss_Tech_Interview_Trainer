@@ -23,7 +23,12 @@ public class Submission
     public Guid UserId { get; private set; }
 
     /// <summary>
-    /// Gets the raw submitted C# source code, project summary, or behavioral text.
+    /// Gets the backend programming language used in this submission.
+    /// </summary>
+    public ProgrammingLanguage Language { get; private set; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
+    /// Gets the raw submitted source code, project summary, or behavioral text.
     /// </summary>
     public string SubmittedCode { get; private set; } = string.Empty;
 
@@ -70,13 +75,15 @@ public class Submission
     /// <param name="submittedCode">The code or content submitted.</param>
     /// <param name="additionalNotes">Optional notes from the candidate.</param>
     /// <param name="submissionType">The format of the submission.</param>
+    /// <param name="language">The programming language used.</param>
     /// <exception cref="ArgumentException">Thrown when exerciseId or userId is empty.</exception>
     public Submission(
         Guid exerciseId,
         Guid userId,
         string submittedCode,
         string additionalNotes = "",
-        SubmissionType submissionType = SubmissionType.SingleFile)
+        SubmissionType submissionType = SubmissionType.SingleFile,
+        ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
         if (exerciseId == Guid.Empty)
             throw new ArgumentException("ExerciseId cannot be empty.", nameof(exerciseId));
@@ -86,6 +93,7 @@ public class Submission
         Id = Guid.NewGuid();
         ExerciseId = exerciseId;
         UserId = userId;
+        Language = language;
         SubmittedCode = submittedCode ?? string.Empty;
         AdditionalNotes = additionalNotes?.Trim() ?? string.Empty;
         SubmissionType = submissionType;
@@ -100,15 +108,17 @@ public class Submission
     /// <param name="submittedCode">Submitted solution text/code.</param>
     /// <param name="additionalNotes">Optional justification notes.</param>
     /// <param name="submissionType">Submission payload format.</param>
+    /// <param name="language">The programming language used.</param>
     /// <returns>A new validated <see cref="Submission"/> instance.</returns>
     public static Submission Create(
         Guid exerciseId,
         Guid userId,
         string submittedCode,
         string additionalNotes = "",
-        SubmissionType submissionType = SubmissionType.SingleFile)
+        SubmissionType submissionType = SubmissionType.SingleFile,
+        ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        return new Submission(exerciseId, userId, submittedCode, additionalNotes, submissionType);
+        return new Submission(exerciseId, userId, submittedCode, additionalNotes, submissionType, language);
     }
 
     /// <summary>

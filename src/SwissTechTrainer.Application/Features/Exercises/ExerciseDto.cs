@@ -18,6 +18,16 @@ public sealed record ExerciseDto
     public CategoryType Category { get; init; }
 
     /// <summary>
+    /// Gets the backend programming language for this exercise.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
+    /// Gets the human-readable display name for the programming language.
+    /// </summary>
+    public string LanguageDisplayName { get; init; } = string.Empty;
+
+    /// <summary>
     /// Gets the human-readable display title for the category.
     /// </summary>
     public string CategoryDisplayName { get; init; } = string.Empty;

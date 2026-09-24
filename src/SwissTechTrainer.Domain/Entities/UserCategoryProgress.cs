@@ -23,6 +23,11 @@ public class UserCategoryProgress
     public CategoryType Category { get; private set; }
 
     /// <summary>
+    /// Gets the target backend programming language for this progress track.
+    /// </summary>
+    public ProgrammingLanguage Language { get; private set; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
     /// Gets the current difficulty level reached (Level 1 to 5).
     /// </summary>
     public DifficultyLevel CurrentLevel { get; private set; } = DifficultyLevel.Level1;
@@ -72,8 +77,9 @@ public class UserCategoryProgress
     /// </summary>
     /// <param name="userId">The ID of the candidate.</param>
     /// <param name="category">The interview category.</param>
+    /// <param name="language">The backend programming language.</param>
     /// <exception cref="ArgumentException">Thrown when userId is empty.</exception>
-    public UserCategoryProgress(Guid userId, CategoryType category)
+    public UserCategoryProgress(Guid userId, CategoryType category, ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("UserId cannot be empty.", nameof(userId));
@@ -81,6 +87,7 @@ public class UserCategoryProgress
         Id = Guid.NewGuid();
         UserId = userId;
         Category = category;
+        Language = language;
         CurrentLevel = DifficultyLevel.Level1;
         ConsecutiveFailures = 0;
         CompletedLevelsCount = 0;
@@ -94,10 +101,11 @@ public class UserCategoryProgress
     /// </summary>
     /// <param name="userId">The user ID.</param>
     /// <param name="category">The category.</param>
+    /// <param name="language">The programming language.</param>
     /// <returns>A new <see cref="UserCategoryProgress"/> instance.</returns>
-    public static UserCategoryProgress Create(Guid userId, CategoryType category)
+    public static UserCategoryProgress Create(Guid userId, CategoryType category, ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        return new UserCategoryProgress(userId, category);
+        return new UserCategoryProgress(userId, category, language);
     }
 
     /// <summary>

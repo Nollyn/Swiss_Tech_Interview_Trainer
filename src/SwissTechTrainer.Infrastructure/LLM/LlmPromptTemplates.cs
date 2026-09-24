@@ -13,25 +13,30 @@ public static class LlmPromptTemplates
     /// <summary>
     /// Builds the system prompt enforcing JSON schema, role positioning, and Swiss market criteria for exercise generation.
     /// </summary>
+    /// <param name="language">The target programming language.</param>
     /// <returns>The formatted system prompt string.</returns>
-    public static string BuildExerciseGenerationSystemPrompt()
+    public static string BuildExerciseGenerationSystemPrompt(ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        return """
+        var langName = language.GetDisplayName();
+        var ext = language.GetFileExtension();
+
+        return $$"""
 You are a Principal Staff Software Architect and Technical Hiring Bar Raiser for top Swiss tech companies and private banks in Zurich (SIX Group, UBS, Avaloq, Swissquote, Zühlke).
-Your task is to generate an authentic, senior-level technical interview exercise for a Senior .NET Developer / Tech Lead candidate.
+Your task is to generate an authentic, senior-level technical interview exercise in {{langName}} for a Senior {{langName}} Developer / Tech Lead candidate.
 
 CRITICAL INSTRUCTIONS:
 1. Output MUST be ONLY valid JSON adhering strictly to the JSON schema specified below.
 2. No markdown wrapper outside the JSON (no ```json ... ```).
-3. The exercise must reflect realistic Swiss engineering practices (clean architecture, zero-allocation considerations, resilience, testability, high regulatory standards).
+3. The exercise must reflect realistic Swiss engineering practices (clean architecture, language-idiomatic memory/concurrency considerations, resilience, testability, high regulatory standards).
 4. Do NOT repeat or duplicate the previous exercise provided in the negative context.
+5. All starter code must be written in idiomatic {{langName}}.
 
 JSON SCHEMA:
 {
   "title": "Clear, professional exercise title",
   "description": "Full problem specification in Markdown with context, requirements, constraints, and acceptance criteria.",
-  "starterCode": "C# starter code / boilerplate with interfaces and TODO comments, or Markdown architecture template.",
-  "expectedOutputFormat": "C# Source File (.cs) or Markdown Justification",
+  "starterCode": "{{langName}} starter code / boilerplate with interfaces/types and TODO comments, or Markdown architecture template.",
+  "expectedOutputFormat": "{{langName}} Source File ({{ext}}) or Markdown Justification",
   "hints": "Progressive diagnostic hints to assist candidates in hint mode."
 }
 """;
@@ -44,9 +49,9 @@ JSON SCHEMA:
     /// <returns>The formatted user prompt string.</returns>
     public static string BuildExerciseGenerationUserPrompt(ExerciseGenerationContext context)
     {
-        var categoryName = context.Category.GetDisplayName();
+        var categoryName = context.Category.GetDisplayName(context.Language);
         var levelLabel = context.Level.GetLabel();
-        var rubrics = CategoryRubricCatalog.GetRubricForCategory(context.Category);
+        var rubrics = CategoryRubricCatalog.GetRubricForCategory(context.Category, context.Language);
         string rubricText = string.Join("\n", rubrics.Select(r => $"- {r.Name} ({r.Weight}%): {r.Description}"));
 
         string negativeContext = string.Empty;
@@ -57,7 +62,7 @@ JSON SCHEMA:
 NEGATIVE CONTEXT (DO NOT DUPLICATE THIS RECENT EXERCISE):
 Previous Title: {context.PreviousExerciseTitle}
 Previous Description Summary: {context.PreviousExerciseDescription?[..Math.Min(200, context.PreviousExerciseDescription.Length)]}
-You MUST generate a completely distinct technical problem for this category and level.
+You MUST generate a completely distinct technical problem for this category, language, and level.
 """;
         }
 
@@ -68,6 +73,7 @@ You MUST generate a completely distinct technical problem for this category and 
         return $"""
 Generate a new technical interview exercise:
 Category: {categoryName}
+Target Language: {context.Language.GetDisplayName()}
 Difficulty: {levelLabel} (Level {(int)context.Level} of 5)
 
 Evaluation Rubric that will be applied to candidate answers:
@@ -82,16 +88,20 @@ Provide only the valid JSON response.
     /// <summary>
     /// Builds the system prompt for candidate submission evaluation following the Evaluator-Optimizer pattern.
     /// </summary>
+    /// <param name="language">The programming language evaluated.</param>
     /// <returns>The formatted evaluator system prompt string.</returns>
-    public static string BuildEvaluationSystemPrompt()
+    public static string BuildEvaluationSystemPrompt(ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        return """
-You are a strict, objective, and constructive Principal Staff Software Architect conducting a senior technical interview assessment for the Zurich/Swiss tech market.
+        var langName = language.GetDisplayName();
+
+        return $$"""
+You are a strict, objective, and constructive Principal Staff Software Architect conducting a senior technical interview assessment in {{langName}} for the Zurich/Swiss tech market.
 Your evaluation MUST follow the Evaluator-Optimizer methodology:
 1. Evaluate each criterion separately on a scale of 0 to 100 based on cited evidence from the candidate's code.
-2. Provide exact code evidence citations (referencing specific methods, allocations, or anti-patterns in the candidate's submission).
-3. Provide concrete before/after code refactoring suggestions with syntax-highlighted snippets.
+2. Provide exact code evidence citations (referencing specific functions, memory management, or anti-patterns in the candidate's submission).
+3. Provide concrete before/after code refactoring suggestions with syntax-highlighted snippets in {{langName}}.
 4. Output MUST be ONLY valid JSON matching the schema below. Do NOT calculate a total final score; your role is solely to score each individual criterion accurately and provide actionable feedback.
+5. CONTEXT & IDIOM RULE: Evaluate strictly against {{langName}} idioms and best practices. Do NOT demand foreign language constructs (e.g. do not demand C# Span/LINQ if the candidate is writing Python, Rust, Go, Java, or Node.js).
 
 JSON SCHEMA:
 {
@@ -107,8 +117,8 @@ JSON SCHEMA:
     {
       "title": "Specific Refactoring / Improvement Title",
       "originalCode": "Candidate snippet that has an issue",
-      "suggestedCode": "Production-grade, idiomatic corrected snippet",
-      "explanation": "Why this change improves performance, SOLID adherence, or resilience"
+      "suggestedCode": "Production-grade, idiomatic corrected snippet in {{langName}}",
+      "explanation": "Why this change improves performance, idiomatic design, or resilience"
     }
   ],
   "generalFeedback": "Comprehensive, encouraging, yet rigorous feedback in Markdown format.",
@@ -124,14 +134,16 @@ JSON SCHEMA:
     /// <returns>The formatted evaluator user prompt string.</returns>
     public static string BuildEvaluationUserPrompt(EvaluationPromptContext context)
     {
-        var categoryName = context.Category.GetDisplayName();
-        var rubrics = CategoryRubricCatalog.GetRubricForCategory(context.Category);
+        var categoryName = context.Category.GetDisplayName(context.Language);
+        var rubrics = CategoryRubricCatalog.GetRubricForCategory(context.Category, context.Language);
         string rubricCriteriaList = string.Join("\n", rubrics.Select(r => $"- \"{r.Name}\" (Weight: {r.Weight}%): {r.Description}"));
+        var fence = context.Language.GetCodeFenceTag();
 
         return $"""
 Please evaluate the following candidate submission:
 
 Category: {categoryName}
+Programming Language: {context.Language.GetDisplayName()}
 Difficulty Level: {context.Level.GetLabel()}
 Exercise Title: {context.ExerciseTitle}
 
@@ -139,12 +151,12 @@ Exercise Description:
 {context.ExerciseDescription}
 
 Starter Code:
-```csharp
+```{fence}
 {context.StarterCode}
 ```
 
 Candidate Submitted Code:
-```csharp
+```{fence}
 {context.SubmittedCode}
 ```
 

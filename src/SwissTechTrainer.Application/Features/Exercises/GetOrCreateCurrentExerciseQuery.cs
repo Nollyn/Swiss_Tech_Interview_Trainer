@@ -8,11 +8,12 @@ using SwissTechTrainer.Domain.Enums;
 namespace SwissTechTrainer.Application.Features.Exercises;
 
 /// <summary>
-/// Query to retrieve the candidate's currently active exercise for a category, or synthesize a new one if not yet initialized or already passed.
+/// Query to retrieve the candidate's currently active exercise for a category and programming language, or synthesize a new one if not yet initialized or already passed.
 /// </summary>
 /// <param name="Category">The interview category dimension.</param>
+/// <param name="Language">The target programming language, defaulting to C#.</param>
 /// <param name="UserId">Optional user ID filter, defaulting to current ambient user.</param>
-public sealed record GetOrCreateCurrentExerciseQuery(CategoryType Category, Guid? UserId = null) : IRequest<ExerciseDto>;
+public sealed record GetOrCreateCurrentExerciseQuery(CategoryType Category, ProgrammingLanguage Language = ProgrammingLanguage.CSharp, Guid? UserId = null) : IRequest<ExerciseDto>;
 
 /// <summary>
 /// Handler that ensures idempotent exercise delivery across page refreshes while serving new AI exercises on progression.
@@ -34,6 +35,7 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
     public async Task<ExerciseDto> Handle(GetOrCreateCurrentExerciseQuery request, CancellationToken cancellationToken)
     {
         var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
+        var targetLanguage = request.Language;
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
@@ -46,12 +48,12 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        var progress = user.GetOrCreateProgress(request.Category);
+        var progress = user.GetOrCreateProgress(request.Category, targetLanguage);
         var currentLevel = progress.CurrentLevel;
 
-        // Find the latest exercise for this category and level
+        // Find the latest exercise for this category, level, and language
         var latestExercise = await context.Exercises
-            .Where(e => e.Category == request.Category && e.Level == currentLevel)
+            .Where(e => e.Category == request.Category && e.Level == currentLevel && e.Language == targetLanguage)
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -77,6 +79,7 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
         var genContext = new ExerciseGenerationContext
         {
             Category = request.Category,
+            Language = targetLanguage,
             Level = currentLevel,
             PreviousExerciseTitle = latestExercise?.Title,
             PreviousExerciseDescription = latestExercise?.Description,
@@ -94,7 +97,8 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
             expectedOutputFormat: generated.ExpectedOutputFormat,
             hints: generated.Hints,
             isAiGenerated: true,
-            previousExerciseReferenceId: latestExercise?.Id
+            previousExerciseReferenceId: latestExercise?.Id,
+            language: targetLanguage
         );
 
         context.Exercises.Add(newExercise);
@@ -107,7 +111,9 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
     {
         Id = exercise.Id,
         Category = exercise.Category,
-        CategoryDisplayName = exercise.Category.GetDisplayName(),
+        CategoryDisplayName = exercise.Category.GetDisplayName(exercise.Language),
+        Language = exercise.Language,
+        LanguageDisplayName = exercise.Language.GetDisplayName(),
         Level = exercise.Level,
         LevelLabel = exercise.Level.GetLabel(),
         Title = exercise.Title,

@@ -2,7 +2,7 @@
 @inject IMediator Mediator
 @inject NavigationManager Navigation
 
-<PageTitle>Dashboard | Swiss Tech Interview Trainer</PageTitle>
+<PageTitle>@L["NavDashboard"] | @L["AppTitle"]</PageTitle>
 
 @if (_dashboard == null)
 {
@@ -14,37 +14,60 @@
 }
 else
 {
-    <!-- Candidate Profile Banner -->
+    <!-- Candidate Profile & Focus Banner -->
     <div class="card mb-4 border-secondary p-4 bg-gradient">
         <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <span class="badge bg-danger fs-6 px-3 py-2">🇨🇭 Swiss Tech Hiring Track</span>
+            <div class="col-lg-7">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-danger fs-6 px-3 py-2">🇨🇭 @L["HiringTrackBadge"]</span>
                     <h3 class="mb-0 fw-bold">@_dashboard.Username</h3>
                 </div>
                 <p class="text-secondary mb-2">
-                    Target Role: <strong class="text-light">@_dashboard.TargetRole</strong>
+                    @L["TargetRoleLabel"] <strong class="text-light">@_dashboard.TargetRole</strong>
                 </p>
-                <div class="d-flex align-items-center gap-4 text-secondary small">
-                    <span><i class="bi bi-trophy text-warning me-1"></i> Completed: <strong>@_dashboard.TotalCompletedExercises / 35 Levels</strong></span>
-                    <span><i class="bi bi-shield-check text-success me-1"></i> Quality Gate: <strong>&ge; 90% Mastery Threshold</strong></span>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary small">
+                    <span><i class="bi bi-trophy text-warning me-1"></i> @L["CompletedCountLabel"] <strong>@string.Format(L["CompletedLevelsTotal"], _dashboard.TotalCompletedExercises, 35)</strong></span>
+                    <span><i class="bi bi-shield-check text-success me-1"></i> <strong>@L["QualityGateBadge"]</strong></span>
                 </div>
             </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="d-inline-block text-center p-3 rounded bg-dark border border-secondary">
-                    <div class="fs-2 fw-bold text-info">@_dashboard.OverallMasteryPercentage%</div>
-                    <div class="small text-secondary text-uppercase tracking-wide">Overall Readiness</div>
+
+            <!-- Backend Language Selector & Readiness Gauge -->
+            <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+                <div class="d-flex flex-column flex-sm-row justify-content-lg-end align-items-center gap-3">
+                    <div class="text-start">
+                        <label class="form-label small text-secondary text-uppercase fw-semibold mb-1 d-block">
+                            <i class="bi bi-code-square text-danger me-1"></i> @L["SelectBackendLanguage"]
+                        </label>
+                        <select class="form-select form-select-sm bg-dark text-light border-secondary shadow-sm" 
+                                style="min-width: 160px;"
+                                @bind="SelectedLanguage" 
+                                @bind:after="OnLanguageChangedAsync">
+                            @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
+                            {
+                                <option value="@lang">@lang.GetDisplayName()</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="d-inline-block text-center p-3 rounded bg-dark border border-secondary shadow-sm">
+                        <div class="fs-2 fw-bold text-info">@_dashboard.OverallMasteryPercentage%</div>
+                        <div class="small text-secondary text-uppercase tracking-wide">@L["OverallReadiness"]</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Category Grid -->
+    <!-- Category Grid Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>Interview Categories</h4>
-        <span class="text-secondary small">7 Specialized Swiss Tech Lead Dimensions</span>
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>@L["InterviewCategoriesTitle"]
+            <span class="badge @_selectedLanguage.GetBadgeClass() ms-2 fs-7">@_selectedLanguage.GetDisplayName()</span>
+        </h4>
+        <span class="text-secondary small">@L["InterviewCategoriesSubtitle"]</span>
     </div>
 
+    <!-- Category Grid -->
     <div class="row g-4">
         @foreach (var cat in _dashboard.Categories)
         {
@@ -65,7 +88,7 @@ else
                             @if (cat.HintModeActive)
                             {
                                 <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts">
-                                    <i class="bi bi-lightbulb-fill"></i> Hint Mode
+                                    <i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]
                                 </span>
                             }
                         </div>
@@ -75,8 +98,8 @@ else
 
                     <div>
                         <div class="d-flex justify-content-between small text-secondary mb-1">
-                            <span>Level Progress</span>
-                            <span>@cat.CompletedLevelsCount / 5 Completed (@cat.ProgressPercentage%)</span>
+                            <span>@L["LevelProgress"]</span>
+                            <span>@string.Format(L["CompletedOutOfFive"], cat.CompletedLevelsCount, cat.ProgressPercentage)</span>
                         </div>
                         <div class="progress mb-3 bg-black" style="height: 8px;">
                             <div class="progress-bar bg-danger" role="progressbar" style="width: @(cat.ProgressPercentage)%;"></div>
@@ -86,15 +109,15 @@ else
                             <div class="small text-muted">
                                 @if (cat.HighestScoreAchieved > 0)
                                 {
-                                    <span>Best: <strong class="text-info">@cat.HighestScoreAchieved%</strong></span>
+                                    <span>@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
                                 }
                                 else
                                 {
-                                    <span>Not started</span>
+                                    <span>@L["NotStarted"]</span>
                                 }
                             </div>
-                            <a href="exercise/@cat.Category" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
-                                Practice Level @((int)cat.CurrentLevel) <i class="bi bi-arrow-right ms-1"></i>
+                            <a href="exercise/@cat.Category?lang=@_selectedLanguage" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
+                                @string.Format(L["PracticeLevelButton"], (int)cat.CurrentLevel) <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>
@@ -106,14 +129,26 @@ else
 
 @code {
     private UserDashboardDto? _dashboard;
+    private ProgrammingLanguage _selectedLanguage = ProgrammingLanguage.CSharp;
+
+    public ProgrammingLanguage SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set => _selectedLanguage = value;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDashboardAsync();
     }
 
+    private async Task OnLanguageChangedAsync()
+    {
+        await LoadDashboardAsync();
+    }
+
     private async Task LoadDashboardAsync()
     {
-        _dashboard = await Mediator.Send(new GetUserDashboardQuery());
+        _dashboard = await Mediator.Send(new GetUserDashboardQuery(_selectedLanguage));
     }
 }

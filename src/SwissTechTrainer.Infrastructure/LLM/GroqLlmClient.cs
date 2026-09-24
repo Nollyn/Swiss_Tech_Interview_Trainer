@@ -84,7 +84,7 @@ public class GroqLlmClient(
             return await fallbackClient.GenerateExerciseAsync(context, ct);
         }
 
-        string systemPrompt = LlmPromptTemplates.BuildExerciseGenerationSystemPrompt();
+        string systemPrompt = LlmPromptTemplates.BuildExerciseGenerationSystemPrompt(context.Language);
         string userPrompt = LlmPromptTemplates.BuildExerciseGenerationUserPrompt(context);
 
         try
@@ -117,7 +117,7 @@ public class GroqLlmClient(
             return await fallbackClient.EvaluateSubmissionAsync(context, ct);
         }
 
-        string systemPrompt = LlmPromptTemplates.BuildEvaluationSystemPrompt();
+        string systemPrompt = LlmPromptTemplates.BuildEvaluationSystemPrompt(context.Language);
         string userPrompt = LlmPromptTemplates.BuildEvaluationUserPrompt(context);
 
         try

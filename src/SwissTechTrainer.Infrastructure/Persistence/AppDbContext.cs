@@ -57,7 +57,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<UserCategoryProgress>(b =>
         {
             b.HasKey(p => p.Id);
-            b.HasIndex(p => new { p.UserId, p.Category }).IsUnique();
+            b.HasIndex(p => new { p.UserId, p.Category, p.Language }).IsUnique();
         });
 
         // Exercise
@@ -66,7 +66,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             b.HasKey(e => e.Id);
             b.Property(e => e.Title).IsRequired().HasMaxLength(300);
             b.Property(e => e.ExpectedOutputFormat).HasMaxLength(200);
-            b.HasIndex(e => new { e.Category, e.Level });
+            b.HasIndex(e => new { e.Category, e.Level, e.Language });
 
             b.HasMany(e => e.Submissions)
                 .WithOne(s => s.Exercise)

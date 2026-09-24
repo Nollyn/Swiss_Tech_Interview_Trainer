@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Navigation & Header -->
+  <data name="AppTitle" xml:space="preserve">
+    <value>Entrenador de Entrevistas Tech Suiza</value>
+  </data>
+  <data name="AppSubtitle" xml:space="preserve">
+    <value>Track Zurich Senior &amp; Tech Lead</value>
+  </data>
+  <data name="NavDashboard" xml:space="preserve">
+    <value>Panel Principal</value>
+  </data>
+  <data name="NavHistory" xml:space="preserve">
+    <value>Historial de Intentos</value>
+  </data>
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="SelectBackendLanguage" xml:space="preserve">
+    <value>Lenguaje Backend</value>
+  </data>
+  
+  <!-- Dashboard Banner -->
+  <data name="HiringTrackBadge" xml:space="preserve">
+    <value>Track de Contratación Tech Suiza</value>
+  </data>
+  <data name="TargetRoleLabel" xml:space="preserve">
+    <value>Rol Objetivo:</value>
+  </data>
+  <data name="CompletedCountLabel" xml:space="preserve">
+    <value>Completados:</value>
+  </data>
+  <data name="CompletedLevelsTotal" xml:space="preserve">
+    <value>{0} / {1} Niveles</value>
+  </data>
+  <data name="QualityGateBadge" xml:space="preserve">
+    <value>Quality Gate: Umbral de Maestría ≥ 90%</value>
+  </data>
+  <data name="OverallReadiness" xml:space="preserve">
+    <value>Preparación Global</value>
+  </data>
+  
+  <!-- Dashboard Categories Section -->
+  <data name="InterviewCategoriesTitle" xml:space="preserve">
+    <value>Categorías de Entrevista</value>
+  </data>
+  <data name="InterviewCategoriesSubtitle" xml:space="preserve">
+    <value>7 Dimensiones Especializadas para Tech Lead Suizo</value>
+  </data>
+  <data name="HintModeActiveBadge" xml:space="preserve">
+    <value>Modo Pistas</value>
+  </data>
+  <data name="LevelProgress" xml:space="preserve">
+    <value>Progreso del Nivel</value>
+  </data>
+  <data name="CompletedOutOfFive" xml:space="preserve">
+    <value>{0} / 5 Completados ({1}%)</value>
+  </data>
+  <data name="BestScoreLabel" xml:space="preserve">
+    <value>Mejor: {0}%</value>
+  </data>
+  <data name="NotStarted" xml:space="preserve">
+    <value>No iniciado</value>
+  </data>
+  <data name="PracticeLevelButton" xml:space="preserve">
+    <value>Practicar Nivel {0}</value>
+  </data>
+  
+  <!-- Categories -->
+  <data name="Category_Coding" xml:space="preserve">
+    <value>Programación / Algoritmos y Estructuras de Datos</value>
+  </data>
+  <data name="Category_SystemDesign" xml:space="preserve">
+    <value>Diseño de Sistemas</value>
+  </data>
+  <data name="Category_DotNetDeepDive" xml:space="preserve">
+    <value>Deep Dive</value>
+  </data>
+  <data name="Category_CleanCode" xml:space="preserve">
+    <value>Clean Code y Refactorización</value>
+  </data>
+  <data name="Category_ApiDesign" xml:space="preserve">
+    <value>Diseño de APIs y Sistemas Distribuidos</value>
+  </data>
+  <data name="Category_Testing" xml:space="preserve">
+    <value>Testing y TDD</value>
+  </data>
+  <data name="Category_Behavioral" xml:space="preserve">
+    <value>Comportamental y Liderazgo (STAR)</value>
+  </data>
+  
+  <!-- Difficulty Levels -->
+  <data name="Level1_Label" xml:space="preserve">
+    <value>Nivel 1: Fundamentos Esenciales</value>
+  </data>
+  <data name="Level2_Label" xml:space="preserve">
+    <value>Nivel 2: Problemas de Producción Aplicados</value>
+  </data>
+  <data name="Level3_Label" xml:space="preserve">
+    <value>Nivel 3: Concurrencia y Presión de Rendimiento</value>
+  </data>
+  <data name="Level4_Label" xml:space="preserve">
+    <value>Nivel 4: Sistemas Distribuidos y Modos de Fallo</value>
+  </data>
+  <data name="Level5_Label" xml:space="preserve">
+    <value>Nivel 5: Maestría Senior/Lead bajo Altas Restricciones</value>
+  </data>
+  
+  <!-- Exercise Room -->
+  <data name="BackToDashboard" xml:space="preserve">
+    <value>Volver al Panel</value>
+  </data>
+  <data name="NewSimilarVariant" xml:space="preserve">
+    <value>Nueva Variante Similar</value>
+  </data>
+  <data name="DiagnosticHints" xml:space="preserve">
+    <value>Pistas de Diagnóstico Arquitectónico</value>
+  </data>
+  <data name="CandidateSolution" xml:space="preserve">
+    <value>Solución del Candidato</value>
+  </data>
+  <data name="UploadSolution" xml:space="preserve">
+    <value>Subir Archivo</value>
+  </data>
+  <data name="ResetSolution" xml:space="preserve">
+    <value>Reiniciar</value>
+  </data>
+  <data name="AdditionalNotesLabel" xml:space="preserve">
+    <value>Justificación Arquitectónica y Notas (Opcional)</value>
+  </data>
+  <data name="SubmitAssessmentButton" xml:space="preserve">
+    <value>Enviar para Evaluación con IA</value>
+  </data>
+  <data name="EvaluatingProgress" xml:space="preserve">
+    <value>Evaluando Solución mediante Motor Evaluator-Optimizer...</value>
+  </data>
+  <data name="PassedGateHeading" xml:space="preserve">
+    <value>¡Quality Gate Superado! Nivel Avanzado</value>
+  </data>
+  <data name="FailedGateHeading" xml:space="preserve">
+    <value>Quality Gate No Superado (&lt; 90%)</value>
+  </data>
+  <data name="RubricBreakdown" xml:space="preserve">
+    <value>Desglose Detallado de Rúbricas</value>
+  </data>
+  <data name="RefactoringSuggestions" xml:space="preserve">
+    <value>Recomendaciones de Refactorización</value>
+  </data>
+  <data name="OriginalCode" xml:space="preserve">
+    <value>Código Original</value>
+  </data>
+  <data name="SuggestedCode" xml:space="preserve">
+    <value>Código Sugerido</value>
+  </data>
+  <data name="EvidenceCited" xml:space="preserve">
+    <value>Evidencia Citada</value>
+  </data>
+  <data name="Rationale" xml:space="preserve">
+    <value>Justificación</value>
+  </data>
+  
+  <!-- History -->
+  <data name="AttemptHistoryTitle" xml:space="preserve">
+    <value>Historial de Evaluaciones del Candidato</value>
+  </data>
+  <data name="FilterByCategory" xml:space="preserve">
+    <value>Filtrar por Categoría</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>Todas las Categorías</value>
+  </data>
+  <data name="FilterByLanguage" xml:space="preserve">
+    <value>Filtrar por Lenguaje</value>
+  </data>
+  <data name="AllLanguages" xml:space="preserve">
+    <value>Todos los Lenguajes</value>
+  </data>
+  <data name="Score" xml:space="preserve">
+    <value>Puntuación</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Passed" xml:space="preserve">
+    <value>Aprobado</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>No superado</value>
+  </data>
+</root>

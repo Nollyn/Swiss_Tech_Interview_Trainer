@@ -4,8 +4,8 @@
     <header class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4 sticky-top">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/">
             <span class="badge bg-danger text-white px-2 py-1 fs-6 fw-bold">🇨🇭 CH</span>
-            <span class="fw-bold tracking-tight">Swiss Tech Interview Trainer</span>
-            <span class="badge bg-secondary text-light ms-2 fs-7">Zurich Senior & Lead Track</span>
+            <span class="fw-bold tracking-tight">@L["AppTitle"]</span>
+            <span class="badge bg-secondary text-light ms-2 fs-7">@L["AppSubtitle"]</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
@@ -15,13 +15,16 @@
             <ul class="navbar-nav align-items-center gap-3">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <i class="bi bi-grid-fill me-1"></i> Dashboard
+                        <i class="bi bi-grid-fill me-1"></i> @L["NavDashboard"]
                     </NavLink>
                 </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="history">
-                        <i class="bi bi-clock-history me-1"></i> Attempt History
+                        <i class="bi bi-clock-history me-1"></i> @L["NavHistory"]
                     </NavLink>
+                </li>
+                <li class="nav-item">
+                    <CultureSelector />
                 </li>
                 <li class="nav-item">
                     <span class="badge bg-outline-secondary border text-muted py-2 px-3">

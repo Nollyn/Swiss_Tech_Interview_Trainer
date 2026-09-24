@@ -13,6 +13,11 @@ public sealed record DashboardCategoryDto
     public CategoryType Category { get; init; }
 
     /// <summary>
+    /// Gets the backend programming language for this category card.
+    /// </summary>
+    public ProgrammingLanguage Language { get; init; } = ProgrammingLanguage.CSharp;
+
+    /// <summary>
     /// Gets the human-readable display title.
     /// </summary>
     public string DisplayName { get; init; } = string.Empty;
@@ -82,6 +87,11 @@ public sealed record UserDashboardDto
     /// Gets the candidate's username.
     /// </summary>
     public string Username { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the currently selected programming language for the dashboard view.
+    /// </summary>
+    public ProgrammingLanguage SelectedLanguage { get; init; } = ProgrammingLanguage.CSharp;
 
     /// <summary>
     /// Gets the target role description.

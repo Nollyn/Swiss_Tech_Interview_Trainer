@@ -7,10 +7,11 @@ using SwissTechTrainer.Domain.Enums;
 namespace SwissTechTrainer.Application.Features.Dashboard;
 
 /// <summary>
-/// Query to retrieve the candidate's complete dashboard metrics, category progression, and mastery percentages.
+/// Query to retrieve the candidate's complete dashboard metrics, category progression, and mastery percentages for a specific programming language.
 /// </summary>
+/// <param name="Language">The selected programming language focus, defaulting to C#.</param>
 /// <param name="UserId">Optional user ID filter, defaulting to current ambient user.</param>
-public sealed record GetUserDashboardQuery(Guid? UserId = null) : IRequest<UserDashboardDto>;
+public sealed record GetUserDashboardQuery(ProgrammingLanguage Language = ProgrammingLanguage.CSharp, Guid? UserId = null) : IRequest<UserDashboardDto>;
 
 /// <summary>
 /// Handles retrieving or initializing candidate profile and calculating multi-dimensional category mastery.
@@ -30,6 +31,7 @@ public sealed class GetUserDashboardQueryHandler(
     public async Task<UserDashboardDto> Handle(GetUserDashboardQuery request, CancellationToken cancellationToken)
     {
         var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
+        var targetLanguage = request.Language;
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
@@ -46,13 +48,14 @@ public sealed class GetUserDashboardQueryHandler(
         var allCategoryTypes = Enum.GetValues<CategoryType>();
 
         var categories = (from cat in allCategoryTypes
-            let progress = user.GetOrCreateProgress(cat)
+            let progress = user.GetOrCreateProgress(cat, targetLanguage)
             let progressPercent = Math.Min(100.0, progress.CompletedLevelsCount / 5.0 * 100.0)
             select new DashboardCategoryDto
             {
                 Category = cat,
-                DisplayName = cat.GetDisplayName(),
-                ShortDescription = cat.GetShortDescription(),
+                Language = targetLanguage,
+                DisplayName = cat.GetDisplayName(targetLanguage),
+                ShortDescription = cat.GetShortDescription(targetLanguage),
                 Icon = cat.GetIcon(),
                 CurrentLevel = progress.CurrentLevel,
                 CurrentLevelLabel = progress.CurrentLevel.GetLabel(),
@@ -64,13 +67,15 @@ public sealed class GetUserDashboardQueryHandler(
                 LastAttemptAt = progress.LastAttemptAt
             }).ToList();
 
-        var totalCompleted = user.Progresses.Sum(p => p.CompletedLevelsCount);
+        var languageProgresses = user.Progresses.Where(p => p.Language == targetLanguage).ToList();
+        var totalCompleted = languageProgresses.Sum(p => p.CompletedLevelsCount);
         var overallMastery = (double)totalCompleted / (allCategoryTypes.Length * 5) * 100.0;
 
         return new UserDashboardDto
         {
             UserId = user.Id,
             Username = user.Username,
+            SelectedLanguage = targetLanguage,
             TargetRole = user.TargetRole,
             TotalCompletedExercises = totalCompleted,
             OverallMasteryPercentage = Math.Round(overallMastery, 1),

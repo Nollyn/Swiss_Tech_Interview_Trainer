@@ -16,7 +16,7 @@ public enum CategoryType
     SystemDesign = 2,
 
     /// <summary>
-    /// CLR execution internals, memory management (GC, Span, Memory), and asynchronous concurrency.
+    /// CLR/language execution internals, memory management, and asynchronous concurrency.
     /// </summary>
     DotNetDeepDive = 3,
 
@@ -51,11 +51,28 @@ public static class CategoryTypeExtensions
     /// </summary>
     /// <param name="category">The category type to format.</param>
     /// <returns>A localized, descriptive title for the category.</returns>
-    public static string GetDisplayName(this CategoryType category) => category switch
+    public static string GetDisplayName(this CategoryType category) => category.GetDisplayName(ProgrammingLanguage.CSharp);
+
+    /// <summary>
+    /// Gets the human-readable display title for the specified interview category adapted to the candidate's chosen programming language.
+    /// </summary>
+    /// <param name="category">The category type to format.</param>
+    /// <param name="language">The selected programming language.</param>
+    /// <returns>A localized, descriptive title tailored to the language.</returns>
+    public static string GetDisplayName(this CategoryType category, ProgrammingLanguage language) => category switch
     {
-        CategoryType.Coding => "Coding / Algorithms & Data Structures",
+        CategoryType.Coding => $"Coding / Algorithms ({language.GetDisplayName()})",
         CategoryType.SystemDesign => "System Design",
-        CategoryType.DotNetDeepDive => ".NET / C# Deep Dive",
+        CategoryType.DotNetDeepDive => language switch
+        {
+            ProgrammingLanguage.CSharp => ".NET / C# Deep Dive",
+            ProgrammingLanguage.Python => "Python Deep Dive",
+            ProgrammingLanguage.Java => "Java Deep Dive",
+            ProgrammingLanguage.Rust => "Rust Deep Dive",
+            ProgrammingLanguage.Go => "Go Deep Dive",
+            ProgrammingLanguage.NodeJs => "Node.js Deep Dive",
+            _ => $"{language.GetDisplayName()} Deep Dive"
+        },
         CategoryType.CleanCode => "Clean Code & Refactoring",
         CategoryType.ApiDesign => "API Design & Distributed Systems",
         CategoryType.Testing => "Testing & TDD",
@@ -68,14 +85,31 @@ public static class CategoryTypeExtensions
     /// </summary>
     /// <param name="category">The category type to inspect.</param>
     /// <returns>A short description of skills assessed in this category.</returns>
-    public static string GetShortDescription(this CategoryType category) => category switch
+    public static string GetShortDescription(this CategoryType category) => category.GetShortDescription(ProgrammingLanguage.CSharp);
+
+    /// <summary>
+    /// Gets a concise summary description of the category's evaluation focus adapted to the target language.
+    /// </summary>
+    /// <param name="category">The category type to inspect.</param>
+    /// <param name="language">The selected programming language.</param>
+    /// <returns>A short description tailored to the language.</returns>
+    public static string GetShortDescription(this CategoryType category, ProgrammingLanguage language) => category switch
     {
-        CategoryType.Coding => "Pragmatic algorithms, time/space complexity, and idiomatic C# structures.",
+        CategoryType.Coding => $"Pragmatic algorithms, time/space complexity, and idiomatic {language.GetDisplayName()} structures.",
         CategoryType.SystemDesign => "Distributed service design, resilience, and trade-off justifications.",
-        CategoryType.DotNetDeepDive => "Memory management, async/await internals, GC, and CLR performance.",
-        CategoryType.CleanCode => "Refactoring code smells, SOLID compliance, and technical debt reduction.",
+        CategoryType.DotNetDeepDive => language switch
+        {
+            ProgrammingLanguage.CSharp => "Memory management, async/await internals, GC, and CLR performance.",
+            ProgrammingLanguage.Python => "GIL, asyncio event loop, generators/decorators, and memory management.",
+            ProgrammingLanguage.Java => "JVM internals, Garbage Collectors (G1/ZGC), and JMM concurrency.",
+            ProgrammingLanguage.Rust => "Ownership, lifetimes, borrow checker, and zero-cost abstractions.",
+            ProgrammingLanguage.Go => "Goroutines, channels, CSP concurrency, escape analysis, and interfaces.",
+            ProgrammingLanguage.NodeJs => "V8 internals, event loop phases, non-blocking I/O, and stream processing.",
+            _ => $"Internals, memory models, and concurrency in {language.GetDisplayName()}."
+        },
+        CategoryType.CleanCode => $"Refactoring code smells, SOLID/idiomatic principles, and technical debt in {language.GetDisplayName()}.",
         CategoryType.ApiDesign => "REST/gRPC contracts, idempotency, retry policies, and circuit breakers.",
-        CategoryType.Testing => "Unit, integration, and mutation testing using strict TDD principles.",
+        CategoryType.Testing => $"Unit, integration, and mutation testing in {language.GetDisplayName()} using strict TDD.",
         CategoryType.Behavioral => "Technical leadership, conflict resolution, and architectural ownership using STAR.",
         _ => string.Empty
     };

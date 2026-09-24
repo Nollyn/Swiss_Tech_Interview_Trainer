@@ -101,7 +101,8 @@ public sealed class SubmitExerciseCommandHandler(
             userId: user.Id,
             submittedCode: request.SubmittedCode,
             additionalNotes: request.AdditionalNotes,
-            submissionType: request.SubmissionType
+            submissionType: request.SubmissionType,
+            language: exercise.Language
         );
 
         context.Submissions.Add(submission);
@@ -111,6 +112,7 @@ public sealed class SubmitExerciseCommandHandler(
         var evalContext = new EvaluationPromptContext
         {
             Category = exercise.Category,
+            Language = exercise.Language,
             Level = exercise.Level,
             ExerciseTitle = exercise.Title,
             ExerciseDescription = exercise.Description,
@@ -122,8 +124,8 @@ public sealed class SubmitExerciseCommandHandler(
         // Call LLM
         var llmResponse = await llmClient.EvaluateSubmissionAsync(evalContext, cancellationToken);
 
-        // Map and validate criteria against official domain rubric
-        var officialRubric = CategoryRubricCatalog.GetRubricForCategory(exercise.Category);
+        // Map and validate criteria against official domain rubric for this language
+        var officialRubric = CategoryRubricCatalog.GetRubricForCategory(exercise.Category, exercise.Language);
         var criteriaScores = (from rubricItem in officialRubric
             let matchedLlmCriterion = llmResponse.Criteria.FirstOrDefault(c => c.Name.Equals(rubricItem.Name, StringComparison.OrdinalIgnoreCase)) ??
                                       llmResponse.Criteria.FirstOrDefault(c => c.Name.Contains(rubricItem.Name[..Math.Min(10, rubricItem.Name.Length)], StringComparison.OrdinalIgnoreCase))
@@ -139,7 +141,7 @@ public sealed class SubmitExerciseCommandHandler(
         stopwatch.Stop();
 
         // Create Evaluation entity using factory
-        var evaluation = Evaluation.CreatePending(submission.Id);
+        var evaluation = Evaluation.CreatePending(submission.Id, exercise.Language);
         evaluation.Complete(
             criteria: criteriaScores,
             suggestions: codeSuggestions,
@@ -151,8 +153,8 @@ public sealed class SubmitExerciseCommandHandler(
         submission.AttachEvaluation(evaluation);
         context.Evaluations.Add(evaluation);
 
-        // Apply domain progression specification
-        var progress = user.GetOrCreateProgress(exercise.Category);
+        // Apply domain progression specification isolated for this language track
+        var progress = user.GetOrCreateProgress(exercise.Category, exercise.Language);
         var progressionResult = ProgressionSpecification.EvaluateProgression(progress, evaluation.DeterministicScore);
 
         // Update progress entity
@@ -166,7 +168,8 @@ public sealed class SubmitExerciseCommandHandler(
             SubmissionId = submission.Id,
             ExerciseId = exercise.Id,
             Category = exercise.Category,
-            CategoryDisplayName = exercise.Category.GetDisplayName(),
+            Language = exercise.Language,
+            CategoryDisplayName = exercise.Category.GetDisplayName(exercise.Language),
             Level = exercise.Level,
             LevelLabel = exercise.Level.GetLabel(),
             DeterministicScore = evaluation.DeterministicScore,

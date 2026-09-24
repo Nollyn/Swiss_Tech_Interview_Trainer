@@ -70,10 +70,13 @@ public class UserProfile
         CreatedAt = DateTime.UtcNow;
         LastActiveAt = DateTime.UtcNow;
 
-        // Initialize progress for all 7 categories
-        foreach (CategoryType cat in Enum.GetValues<CategoryType>())
+        // Initialize progress for all 7 categories across all supported languages
+        foreach (ProgrammingLanguage lang in Enum.GetValues<ProgrammingLanguage>())
         {
-            _progresses.Add(new UserCategoryProgress(Id, cat));
+            foreach (CategoryType cat in Enum.GetValues<CategoryType>())
+            {
+                _progresses.Add(new UserCategoryProgress(Id, cat, lang));
+            }
         }
     }
 
@@ -98,16 +101,17 @@ public class UserProfile
     }
 
     /// <summary>
-    /// Retrieves or lazily initializes the progress entity for the specified interview category.
+    /// Retrieves or lazily initializes the progress entity for the specified interview category and programming language.
     /// </summary>
     /// <param name="category">The target interview category.</param>
+    /// <param name="language">The target programming language (defaulting to C#).</param>
     /// <returns>The existing or newly created <see cref="UserCategoryProgress"/> record.</returns>
-    public UserCategoryProgress GetOrCreateProgress(CategoryType category)
+    public UserCategoryProgress GetOrCreateProgress(CategoryType category, ProgrammingLanguage language = ProgrammingLanguage.CSharp)
     {
-        var prog = _progresses.FirstOrDefault(p => p.Category == category);
+        var prog = _progresses.FirstOrDefault(p => p.Category == category && p.Language == language);
         if (prog == null)
         {
-            prog = new UserCategoryProgress(Id, category);
+            prog = new UserCategoryProgress(Id, category, language);
             _progresses.Add(prog);
         }
         return prog;

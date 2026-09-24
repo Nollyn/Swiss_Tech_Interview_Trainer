@@ -8,11 +8,12 @@ using SwissTechTrainer.Domain.Enums;
 namespace SwissTechTrainer.Application.Features.Exercises;
 
 /// <summary>
-/// Command to request dynamic LLM generation of a new exercise variant for the candidate's current category and level.
+/// Command to request dynamic LLM generation of a new exercise variant for the candidate's current category, language, and level.
 /// </summary>
 /// <param name="Category">The interview category dimension.</param>
+/// <param name="Language">The target backend programming language, defaulting to C#.</param>
 /// <param name="UserId">Optional user ID filter, defaulting to current ambient user.</param>
-public sealed record GenerateNewExerciseVariantCommand(CategoryType Category, Guid? UserId = null) : IRequest<ExerciseDto>;
+public sealed record GenerateNewExerciseVariantCommand(CategoryType Category, ProgrammingLanguage Language = ProgrammingLanguage.CSharp, Guid? UserId = null) : IRequest<ExerciseDto>;
 
 /// <summary>
 /// Handler responsible for orchestrating negative-context prompt assembly, LLM exercise generation, and persistence.
@@ -34,6 +35,7 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
     public async Task<ExerciseDto> Handle(GenerateNewExerciseVariantCommand request, CancellationToken cancellationToken)
     {
         var targetUserId = request.UserId ?? await currentUserService.GetOrCreateCurrentUserIdAsync(cancellationToken);
+        var targetLanguage = request.Language;
 
         var user = await context.UserProfiles
             .Include(u => u.Progresses)
@@ -46,17 +48,18 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        var progress = user.GetOrCreateProgress(request.Category);
+        var progress = user.GetOrCreateProgress(request.Category, targetLanguage);
         var currentLevel = progress.CurrentLevel;
 
         var latestExercise = await context.Exercises
-            .Where(e => e.Category == request.Category && e.Level == currentLevel)
+            .Where(e => e.Category == request.Category && e.Level == currentLevel && e.Language == targetLanguage)
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         var genContext = new ExerciseGenerationContext
         {
             Category = request.Category,
+            Language = targetLanguage,
             Level = currentLevel,
             PreviousExerciseTitle = latestExercise?.Title,
             PreviousExerciseDescription = latestExercise?.Description,
@@ -74,7 +77,8 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
             expectedOutputFormat: generated.ExpectedOutputFormat,
             hints: generated.Hints,
             isAiGenerated: true,
-            previousExerciseReferenceId: latestExercise?.Id
+            previousExerciseReferenceId: latestExercise?.Id,
+            language: targetLanguage
         );
 
         context.Exercises.Add(newExercise);
@@ -84,7 +88,9 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
         {
             Id = newExercise.Id,
             Category = newExercise.Category,
-            CategoryDisplayName = newExercise.Category.GetDisplayName(),
+            CategoryDisplayName = newExercise.Category.GetDisplayName(newExercise.Language),
+            Language = newExercise.Language,
+            LanguageDisplayName = newExercise.Language.GetDisplayName(),
             Level = newExercise.Level,
             LevelLabel = newExercise.Level.GetLabel(),
             Title = newExercise.Title,

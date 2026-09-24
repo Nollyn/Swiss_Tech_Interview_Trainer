@@ -54,7 +54,7 @@ public class GetUserDashboardQueryHandlerTests : IDisposable
         cleanCodeProg.RecordAttempt(92.0, true);
         await _context.SaveChangesAsync();
 
-        var query = new GetUserDashboardQuery(_userId);
+        var query = new GetUserDashboardQuery(ProgrammingLanguage.CSharp, _userId);
 
         // Act
         var dashboard = await _sut.Handle(query, CancellationToken.None);

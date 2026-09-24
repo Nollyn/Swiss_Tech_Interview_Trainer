@@ -27,21 +27,22 @@ else
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <a href="/" class="text-secondary text-decoration-none small mb-1 d-inline-block">
-                <i class="bi bi-chevron-left"></i> Back to Dashboard
+                <i class="bi bi-chevron-left"></i> @L["BackToDashboard"]
             </a>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <h3 class="fw-bold mb-0">@Exercise.CategoryDisplayName</h3>
+                <span class="badge @Exercise.Language.GetBadgeClass()">@Exercise.Language.GetDisplayName()</span>
                 <span class="badge bg-danger">@Exercise.LevelLabel</span>
                 @if (Exercise.HintModeActive)
                 {
-                    <span class="badge bg-warning text-dark"><i class="bi bi-lightbulb-fill"></i> Hint Mode Active</span>
+                    <span class="badge bg-warning text-dark"><i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]</span>
                 }
             </div>
         </div>
 
         <div class="d-flex gap-2">
             <button class="btn btn-outline-secondary btn-sm" @onclick="GenerateSimilarVariantAsync" disabled="@IsEvaluating">
-                <i class="bi bi-shuffle me-1"></i> New Similar Variant
+                <i class="bi bi-shuffle me-1"></i> @L["NewSimilarVariant"]
             </button>
         </div>
     </div>
@@ -65,7 +66,7 @@ else
                             <div class="accordion-item bg-dark border-warning">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button bg-dark text-warning collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hintCollapse">
-                                        <i class="bi bi-lightbulb-fill me-2"></i> Architectural Diagnostic Hints
+                                        <i class="bi bi-lightbulb-fill me-2"></i> @L["DiagnosticHints"]
                                     </button>
                                 </h2>
                                 <div id="hintCollapse" class="accordion-collapse collapse @(Exercise.HintModeActive ? "show" : "")" data-bs-parent="#hintAccordion">
@@ -84,14 +85,14 @@ else
         <div class="col-lg-7">
             <div class="card p-3 h-100 border-secondary">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-code-square text-danger me-2"></i>Candidate Solution</h6>
+                    <h6 class="fw-bold mb-0"><i class="bi bi-code-square text-danger me-2"></i>@L["CandidateSolution"]</h6>
                     <div class="d-flex align-items-center gap-2">
                         <label class="btn btn-sm btn-outline-info mb-0">
-                            <i class="bi bi-upload me-1"></i> Upload .cs / .zip
-                            <InputFile OnChange="HandleFileUploadAsync" class="d-none" accept=".cs,.zip,.txt,.md" />
+                            <i class="bi bi-upload me-1"></i> @L["UploadSolution"] (@Exercise.Language.GetFileExtension() / .zip)
+                            <InputFile OnChange="HandleFileUploadAsync" class="d-none" accept="@($".{Exercise.Language.GetFileExtension().TrimStart('.')},.cs,.py,.java,.rs,.go,.js,.ts,.zip,.txt,.md")" />
                         </label>
                         <button class="btn btn-sm btn-outline-secondary" @onclick="ResetStarterCode" disabled="@IsEvaluating">
-                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            <i class="bi bi-arrow-counterclockwise"></i> @L["ResetSolution"]
                         </button>
                     </div>
                 </div>
@@ -109,19 +110,19 @@ else
                               @bind="SubmittedCode" 
                               @bind:event="oninput"
                               disabled="@IsEvaluating"
-                              placeholder="// Write or paste your C# solution / architectural justification here..."></textarea>
+                              placeholder="@($"// Write or paste your {Exercise.Language.GetDisplayName()} solution / architectural justification here...")"></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small text-secondary">Additional Architectural Notes / Assumptions:</label>
+                    <label class="form-label small text-secondary">@L["AdditionalNotesLabel"]</label>
                     <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" 
                            @bind="AdditionalNotes" 
                            disabled="@IsEvaluating"
-                           placeholder="e.g. Assuming SQL Server 2022 isolation levels, idempotent header cached for 24h..." />
+                           placeholder="e.g. Assuming SQL Server / Postgres isolation levels, idempotency keys, zero-allocation hot paths..." />
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
-                    <span class="small text-muted">Quality Gate: Score &ge; 90.0% unlocks next level</span>
+                    <span class="small text-muted">@L["QualityGateBadge"]</span>
                     <button class="btn btn-danger px-4 fw-bold" @onclick="SubmitSolutionAsync" disabled="@(IsEvaluating || string.IsNullOrWhiteSpace(SubmittedCode))">
                         @if (IsEvaluating)
                         {
@@ -131,7 +132,7 @@ else
                         else
                         {
                             <i class="bi bi-lightning-charge-fill me-1"></i>
-                            <span>Submit for AI Evaluation</span>
+                            <span>@L["SubmitAssessmentButton"]</span>
                         }
                     </button>
                 </div>
@@ -309,7 +310,11 @@ else
     [Parameter]
     public string CategoryName { get; set; } = string.Empty;
 
+    [SupplyParameterFromQuery(Name = "lang")]
+    public string? LanguageQuery { get; set; }
+
     private CategoryType Category;
+    private ProgrammingLanguage Language = ProgrammingLanguage.CSharp;
     private ExerciseDto? Exercise;
     private List<CategoryAttemptHistoryItemDto>? History;
     private EvaluationResultDto? EvaluationResult;
@@ -331,6 +336,14 @@ else
         if (Enum.TryParse<CategoryType>(CategoryName, true, out var parsedCategory))
         {
             Category = parsedCategory;
+            if (!string.IsNullOrWhiteSpace(LanguageQuery) && Enum.TryParse<ProgrammingLanguage>(LanguageQuery, true, out var parsedLang))
+            {
+                Language = parsedLang;
+            }
+            else
+            {
+                Language = ProgrammingLanguage.CSharp;
+            }
             await LoadExerciseAndHistoryAsync();
         }
         else
@@ -343,14 +356,14 @@ else
     private async Task LoadExerciseAndHistoryAsync()
     {
         IsLoading = true;
-        LoadingMessage = $"Loading {Category.GetDisplayName()} challenge...";
+        LoadingMessage = $"Loading {Category.GetDisplayName(Language)} challenge...";
         EvaluationResult = null;
 
         try
         {
-            Exercise = await Mediator.Send(new GetOrCreateCurrentExerciseQuery(Category));
+            Exercise = await Mediator.Send(new GetOrCreateCurrentExerciseQuery(Category, Language));
             SubmittedCode = Exercise.StarterCode;
-            History = await Mediator.Send(new GetCategoryHistoryQuery(Category));
+            History = await Mediator.Send(new GetCategoryHistoryQuery(Category, Language));
         }
         finally
         {
@@ -430,7 +443,7 @@ else
             await Task.Delay(300);
 
             // Refresh history
-            History = await Mediator.Send(new GetCategoryHistoryQuery(Category));
+            History = await Mediator.Send(new GetCategoryHistoryQuery(Category, Language));
         }
         catch (Exception ex)
         {
@@ -456,12 +469,12 @@ else
     private async Task GenerateSimilarVariantAsync()
     {
         IsLoading = true;
-        LoadingMessage = "Generating new challenge variant...";
+        LoadingMessage = $"Generating new {Language.GetDisplayName()} challenge variant...";
         EvaluationResult = null;
 
         try
         {
-            Exercise = await Mediator.Send(new GenerateNewExerciseVariantCommand(Category));
+            Exercise = await Mediator.Send(new GenerateNewExerciseVariantCommand(Category, Language));
             SubmittedCode = Exercise.StarterCode;
             UploadStatusMessage = "Generated a fresh variant for the same difficulty level.";
         }
