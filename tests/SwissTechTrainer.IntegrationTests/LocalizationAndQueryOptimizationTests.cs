@@ -127,5 +127,46 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
         dashboardPython.Should().NotBeNull();
         dashboardPython.Categories.Should().HaveCount(7);
         dashboardPython.SelectedLanguage.Should().Be(ProgrammingLanguage.Python);
+
+        // Verify dynamic adaptation of Category Titles & Descriptions per language track
+        var codingCSharp = dashboardCSharp.Categories.First(c => c.Category == CategoryType.Coding);
+        var codingPython = dashboardPython.Categories.First(c => c.Category == CategoryType.Coding);
+        codingCSharp.DisplayName.Should().Be("Coding / Algorithms (C# (.NET))");
+        codingPython.DisplayName.Should().Be("Coding / Algorithms (Python)");
+
+        var deepDiveCSharp = dashboardCSharp.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        var deepDivePython = dashboardPython.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        deepDiveCSharp.DisplayName.Should().Be(".NET / C# Deep Dive");
+        deepDivePython.DisplayName.Should().Be("Python Deep Dive");
+        deepDivePython.ShortDescription.Should().Contain("GIL");
+    }
+
+    [Theory]
+    [InlineData("http://localhost:8080/exercise/Coding?lang=Python", "/exercise/Coding?lang=Python")]
+    [InlineData("https://app.swisstech.ch/dashboard", "/dashboard")]
+    [InlineData("/history?lang=Python", "/history?lang=Python")]
+    [InlineData("history", "/history")]
+    [InlineData("", "/")]
+    [InlineData("http://evil.com/attack", "/attack")]
+    [InlineData("//evil.com/exploit", "/")]
+    [InlineData("/\\evil.com/exploit", "/")]
+    public async Task CultureEndpoint_SanitizesRedirectUri_AndRedirectsLocallyWithoutExceptions(string redirectUri, string expectedTarget)
+    {
+        await using var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+
+        var encodedUri = Uri.EscapeDataString(redirectUri);
+        var response = await client.GetAsync($"/api/culture/set?culture=de&redirectUri={encodedUri}");
+
+        // Assert
+        ((int)response.StatusCode).Should().BeInRange(300, 399);
+        response.Headers.Location.Should().NotBeNull();
+        response.Headers.Location!.OriginalString.Should().Be(expectedTarget);
+        response.Headers.Should().ContainKey("Set-Cookie");
+        var cookieHeader = string.Join(";", response.Headers.GetValues("Set-Cookie"));
+        cookieHeader.Should().Contain(".AspNetCore.Culture");
     }
 }

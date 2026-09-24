@@ -66,8 +66,61 @@ app.MapGet("/api/culture/set", (string culture, string? redirectUri, HttpContext
         );
     }
 
-    return Results.LocalRedirect(string.IsNullOrWhiteSpace(redirectUri) ? "/" : redirectUri);
+    string targetUrl = GetSafeLocalRedirect(redirectUri);
+    return Results.LocalRedirect(targetUrl);
 });
+
+static string GetSafeLocalRedirect(string? redirectUri)
+{
+    if (string.IsNullOrWhiteSpace(redirectUri))
+    {
+        return "/";
+    }
+
+    if (redirectUri.StartsWith("//") || redirectUri.StartsWith("/\\") || redirectUri.StartsWith("\\"))
+    {
+        return "/";
+    }
+
+    if (Uri.TryCreate(redirectUri, UriKind.Absolute, out var absoluteUri))
+    {
+        var localPath = absoluteUri.PathAndQuery;
+        if (IsSafeLocalPath(localPath))
+        {
+            return localPath;
+        }
+    }
+    else if (IsSafeLocalPath(redirectUri))
+    {
+        return redirectUri;
+    }
+    else if (IsSafeLocalPath("/" + redirectUri.TrimStart('/')))
+    {
+        return "/" + redirectUri.TrimStart('/');
+    }
+
+    return "/";
+}
+
+static bool IsSafeLocalPath(string? path)
+{
+    if (string.IsNullOrEmpty(path))
+    {
+        return false;
+    }
+
+    if (!path.StartsWith('/'))
+    {
+        return false;
+    }
+
+    if (path.Length > 1 && (path[1] == '/' || path[1] == '\\'))
+    {
+        return false;
+    }
+
+    return true;
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

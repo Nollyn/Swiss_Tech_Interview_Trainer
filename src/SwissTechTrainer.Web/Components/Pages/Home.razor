@@ -62,7 +62,7 @@ else
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold mb-0">
             <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>@L["InterviewCategoriesTitle"]
-            <span class="badge @_selectedLanguage.GetBadgeClass() ms-2 fs-7">@_selectedLanguage.GetDisplayName()</span>
+            <span class="badge @_selectedLanguage.GetBadgeClass() ms-2 fs-7" @key="@($"header-badge-{_selectedLanguage}")">@_selectedLanguage.GetDisplayName()</span>
         </h4>
         <span class="text-secondary small">@L["InterviewCategoriesSubtitle"]</span>
     </div>
@@ -71,7 +71,7 @@ else
     <div class="row g-4">
         @foreach (var cat in _dashboard.Categories)
         {
-            <div class="col-md-6 col-xl-4" @key="cat.Category">
+            <div class="col-md-6 col-xl-4" @key="@($"{cat.Category}_{_selectedLanguage}")">
                 <div class="card category-card h-100 p-3 position-relative">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -87,7 +87,7 @@ else
 
                             @if (cat.HintModeActive)
                             {
-                                <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts" @key="@($"hint-{cat.Category}")">
+                                <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts" @key="@($"hint-{cat.Category}-{_selectedLanguage}")">
                                     <i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]
                                 </span>
                             }
@@ -109,11 +109,11 @@ else
                             <div class="small text-muted">
                                 @if (cat.HighestScoreAchieved > 0)
                                 {
-                                    <span @key="@($"score-{cat.Category}")">@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
+                                    <span @key="@($"score-{cat.Category}-{_selectedLanguage}")">@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
                                 }
                                 else
                                 {
-                                    <span @key="@($"notstarted-{cat.Category}")">@L["NotStarted"]</span>
+                                    <span @key="@($"notstarted-{cat.Category}-{_selectedLanguage}")">@L["NotStarted"]</span>
                                 }
                             </div>
                             <a href="exercise/@cat.Category?lang=@_selectedLanguage" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
