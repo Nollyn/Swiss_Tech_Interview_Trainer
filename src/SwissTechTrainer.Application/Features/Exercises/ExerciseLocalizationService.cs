@@ -54,7 +54,7 @@ public class ExerciseLocalizationService : IExerciseLocalizationService
             };
         }
 
-        if (category == CategoryType.DotNetDeepDive && level == DifficultyLevel.Level1)
+        if (category == CategoryType.LanguageDeepDive && level == DifficultyLevel.Level1)
         {
             return culture switch
             {
@@ -196,7 +196,7 @@ Bereitstellung eines prägnanten Architekturdesign-Dokuments mit:
             }
         }
 
-        if (category == CategoryType.DotNetDeepDive && level == DifficultyLevel.Level1)
+        if (category == CategoryType.LanguageDeepDive && level == DifficultyLevel.Level1)
         {
             if (culture == "es")
             {
@@ -381,7 +381,7 @@ Formulieren Sie Ihre Antwort nach der **STAR-Methode (Situation, Task, Action, R
             };
         }
 
-        if (category == CategoryType.DotNetDeepDive && level == DifficultyLevel.Level1)
+        if (category == CategoryType.LanguageDeepDive && level == DifficultyLevel.Level1)
         {
             return culture switch
             {

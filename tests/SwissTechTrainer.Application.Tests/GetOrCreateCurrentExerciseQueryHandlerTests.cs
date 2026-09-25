@@ -52,7 +52,7 @@ public class GetOrCreateCurrentExerciseQueryHandlerTests : IDisposable
     {
         // Arrange
         var existingExercise = new Exercise(
-            category: CategoryType.DotNetDeepDive,
+            category: CategoryType.LanguageDeepDive,
             level: DifficultyLevel.Level1,
             title: "Existing Deep Dive Exercise",
             description: "Desc",
@@ -61,7 +61,7 @@ public class GetOrCreateCurrentExerciseQueryHandlerTests : IDisposable
         _context.Exercises.Add(existingExercise);
         await _context.SaveChangesAsync();
 
-        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.DotNetDeepDive, ProgrammingLanguage.CSharp, _userId);
+        var query = new GetOrCreateCurrentExerciseQuery(CategoryType.LanguageDeepDive, ProgrammingLanguage.CSharp, _userId);
 
         // Act
         var result = await _sut.Handle(query, CancellationToken.None);

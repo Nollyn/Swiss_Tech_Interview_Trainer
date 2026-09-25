@@ -10,7 +10,7 @@ public class CategoryRubricCatalogTests
     [Theory]
     [InlineData(CategoryType.Coding)]
     [InlineData(CategoryType.SystemDesign)]
-    [InlineData(CategoryType.DotNetDeepDive)]
+    [InlineData(CategoryType.LanguageDeepDive)]
     [InlineData(CategoryType.CleanCode)]
     [InlineData(CategoryType.ApiDesign)]
     [InlineData(CategoryType.Testing)]

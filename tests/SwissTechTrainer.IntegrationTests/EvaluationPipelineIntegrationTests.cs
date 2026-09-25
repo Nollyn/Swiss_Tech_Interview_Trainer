@@ -131,7 +131,7 @@ public class PrivateClientFeeStrategy : IFeeStrategy
     public async Task MultiLanguage_PythonAndRust_ProgressesIndependentlyWithCorrectRubrics()
     {
         // 1. Candidate starts Python Deep Dive challenge
-        var pythonExercise = await _mediator.Send(new GetOrCreateCurrentExerciseQuery(CategoryType.DotNetDeepDive, ProgrammingLanguage.Python));
+        var pythonExercise = await _mediator.Send(new GetOrCreateCurrentExerciseQuery(CategoryType.LanguageDeepDive, ProgrammingLanguage.Python));
         pythonExercise.Should().NotBeNull();
         pythonExercise.Language.Should().Be(ProgrammingLanguage.Python);
         pythonExercise.CategoryDisplayName.Should().Contain("Python");
@@ -169,13 +169,13 @@ class SwissTradeEngine:
 
         // 3. Verify Python dashboard shows progression
         var pythonDashboard = await _mediator.Send(new GetUserDashboardQuery(ProgrammingLanguage.Python));
-        var pythonDeepDive = pythonDashboard.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        var pythonDeepDive = pythonDashboard.Categories.First(c => c.Category == CategoryType.LanguageDeepDive);
         pythonDeepDive.CurrentLevel.Should().Be(DifficultyLevel.Level2);
         pythonDeepDive.CompletedLevelsCount.Should().Be(1);
 
         // 4. Verify Rust track is still at Level 1 (zero crosstalk)
         var rustDashboard = await _mediator.Send(new GetUserDashboardQuery(ProgrammingLanguage.Rust));
-        var rustDeepDive = rustDashboard.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        var rustDeepDive = rustDashboard.Categories.First(c => c.Category == CategoryType.LanguageDeepDive);
         rustDeepDive.CurrentLevel.Should().Be(DifficultyLevel.Level1);
         rustDeepDive.CompletedLevelsCount.Should().Be(0);
     }

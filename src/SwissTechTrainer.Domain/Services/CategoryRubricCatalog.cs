@@ -86,7 +86,7 @@ public static class CategoryRubricCatalog
             new("Observability, Security & Compliance", 15.0, "Distributed tracing (OpenTelemetry), structured logging, metrics, and Swiss banking compliance awareness.")
         ],
 
-        CategoryType.DotNetDeepDive => language switch
+        CategoryType.LanguageDeepDive => language switch
         {
             ProgrammingLanguage.Python =>
             [

@@ -73,7 +73,7 @@ public class ProgressionSpecificationTests
     [Fact]
     public void UserCategoryProgress_WhenPassingAfterHintMode_DeactivatesHintMode()
     {
-        var progress = new UserCategoryProgress(Guid.NewGuid(), CategoryType.DotNetDeepDive);
+        var progress = new UserCategoryProgress(Guid.NewGuid(), CategoryType.LanguageDeepDive);
         progress.RecordAttempt(70.0, false);
         progress.RecordAttempt(70.0, false);
         progress.RecordAttempt(70.0, false);

@@ -14,7 +14,7 @@ We implement a **Specification-driven Adaptive Progression Model**:
 1. **Category Taxonomy**:
    - `Coding`: Algorithms & Data Structures (Pragmatic / European Senior style)
    - `SystemDesign`: Distributed Service Design & Trade-offs (Tech Lead scope)
-   - `DotNetDeepDive`: CLR Memory Management, Concurrency, Performance, Internals
+   - `LanguageDeepDive`: CLR Memory Management, Concurrency, Performance, Internals
    - `CleanCode`: Refactoring legacy/smelly code, SOLID compliance
    - `ApiDesign`: REST/gRPC, Idempotency, Distributed Resilience
    - `Testing`: TDD, boundary analysis, resilient test suites

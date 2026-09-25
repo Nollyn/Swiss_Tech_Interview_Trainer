@@ -126,7 +126,7 @@
   <data name="Category_SystemDesign" xml:space="preserve">
     <value>Systemarchitektur &amp; Design</value>
   </data>
-  <data name="Category_DotNetDeepDive" xml:space="preserve">
+  <data name="Category_LanguageDeepDive" xml:space="preserve">
     <value>Deep Dive</value>
   </data>
   <data name="Category_CleanCode" xml:space="preserve">
@@ -147,25 +147,25 @@
   <data name="CategoryDesc_SystemDesign" xml:space="preserve">
     <value>Verteiltes Servicedesign, Resilienz und Abwägung von Trade-offs.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_CSharp" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_CSharp" xml:space="preserve">
     <value>Speicherverwaltung, async/await-Interna, Garbage Collection und CLR-Leistung.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Python" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Python" xml:space="preserve">
     <value>GIL, asyncio-Event-Loop, Generatoren/Dekoratoren und Speicherverwaltung.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Java" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Java" xml:space="preserve">
     <value>JVM-Interna, Garbage Collectors (G1/ZGC) und JMM-Nebenläufigkeit.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Rust" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Rust" xml:space="preserve">
     <value>Ownership, Lifetimes, Borrow Checker und Zero-Cost-Abstraktionen.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Go" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Go" xml:space="preserve">
     <value>Goroutinen, Channels, CSP-Nebenläufigkeit, Escape-Analyse und Interfaces.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_NodeJs" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_NodeJs" xml:space="preserve">
     <value>V8-Interna, Event-Loop-Phasen, nicht-blockierende E/A und Stream-Verarbeitung.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Default" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Default" xml:space="preserve">
     <value>Interna, Speichermodelle und Nebenläufigkeit in {0}.</value>
   </data>
   <data name="CategoryDesc_CleanCode" xml:space="preserve">

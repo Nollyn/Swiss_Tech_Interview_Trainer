@@ -126,7 +126,7 @@
   <data name="Category_SystemDesign" xml:space="preserve">
     <value>System Design</value>
   </data>
-  <data name="Category_DotNetDeepDive" xml:space="preserve">
+  <data name="Category_LanguageDeepDive" xml:space="preserve">
     <value>Deep Dive</value>
   </data>
   <data name="Category_CleanCode" xml:space="preserve">
@@ -147,25 +147,25 @@
   <data name="CategoryDesc_SystemDesign" xml:space="preserve">
     <value>Distributed service design, resilience, and trade-off justifications.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_CSharp" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_CSharp" xml:space="preserve">
     <value>Memory management, async/await internals, GC, and CLR performance.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Python" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Python" xml:space="preserve">
     <value>GIL, asyncio event loop, generators/decorators, and memory management.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Java" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Java" xml:space="preserve">
     <value>JVM internals, Garbage Collectors (G1/ZGC), and JMM concurrency.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Rust" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Rust" xml:space="preserve">
     <value>Ownership, lifetimes, borrow checker, and zero-cost abstractions.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Go" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Go" xml:space="preserve">
     <value>Goroutines, channels, CSP concurrency, escape analysis, and interfaces.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_NodeJs" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_NodeJs" xml:space="preserve">
     <value>V8 internals, event loop phases, non-blocking I/O, and stream processing.</value>
   </data>
-  <data name="CategoryDesc_DotNetDeepDive_Default" xml:space="preserve">
+  <data name="CategoryDesc_LanguageDeepDive_Default" xml:space="preserve">
     <value>Internals, memory models, and concurrency in {0}.</value>
   </data>
   <data name="CategoryDesc_CleanCode" xml:space="preserve">

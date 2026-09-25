@@ -147,7 +147,7 @@ Provide a concise architectural design document with:
 
                 // 3. .NET / C# Deep Dive
                 new(
-                    category: CategoryType.DotNetDeepDive,
+                    category: CategoryType.LanguageDeepDive,
                     level: DifficultyLevel.Level1,
                     title: "High-Throughput Zero-Allocation Financial Message Parser",
                     description: """

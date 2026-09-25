@@ -18,7 +18,7 @@ public enum CategoryType
     /// <summary>
     /// CLR/language execution internals, memory management, and asynchronous concurrency.
     /// </summary>
-    DotNetDeepDive = 3,
+    LanguageDeepDive = 3,
 
     /// <summary>
     /// Refactoring legacy or smelly code to SOLID compliance and architectural cleanliness.
@@ -63,7 +63,7 @@ public static class CategoryTypeExtensions
     {
         CategoryType.Coding => $"Coding / Algorithms ({language.GetDisplayName()})",
         CategoryType.SystemDesign => "System Design",
-        CategoryType.DotNetDeepDive => language switch
+        CategoryType.LanguageDeepDive => language switch
         {
             ProgrammingLanguage.CSharp => ".NET / C# Deep Dive",
             ProgrammingLanguage.Python => "Python Deep Dive",
@@ -97,7 +97,7 @@ public static class CategoryTypeExtensions
     {
         CategoryType.Coding => $"Pragmatic algorithms, time/space complexity, and idiomatic {language.GetDisplayName()} structures.",
         CategoryType.SystemDesign => "Distributed service design, resilience, and trade-off justifications.",
-        CategoryType.DotNetDeepDive => language switch
+        CategoryType.LanguageDeepDive => language switch
         {
             ProgrammingLanguage.CSharp => "Memory management, async/await internals, GC, and CLR performance.",
             ProgrammingLanguage.Python => "GIL, asyncio event loop, generators/decorators, and memory management.",
@@ -123,7 +123,7 @@ public static class CategoryTypeExtensions
     {
         CategoryType.Coding => "bi-code-slash",
         CategoryType.SystemDesign => "bi-diagram-3",
-        CategoryType.DotNetDeepDive => "bi-cpu",
+        CategoryType.LanguageDeepDive => "bi-cpu",
         CategoryType.CleanCode => "bi-brush",
         CategoryType.ApiDesign => "bi-hdd-network",
         CategoryType.Testing => "bi-check2-circle",

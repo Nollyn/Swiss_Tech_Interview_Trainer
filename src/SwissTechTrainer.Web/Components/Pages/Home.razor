@@ -165,15 +165,15 @@ else
         {
             CategoryType.Coding => string.Format(L["CategoryDesc_Coding"], langName),
             CategoryType.SystemDesign => L["CategoryDesc_SystemDesign"],
-            CategoryType.DotNetDeepDive => _selectedLanguage switch
+            CategoryType.LanguageDeepDive => _selectedLanguage switch
             {
-                ProgrammingLanguage.CSharp => L["CategoryDesc_DotNetDeepDive_CSharp"],
-                ProgrammingLanguage.Python => L["CategoryDesc_DotNetDeepDive_Python"],
-                ProgrammingLanguage.Java => L["CategoryDesc_DotNetDeepDive_Java"],
-                ProgrammingLanguage.Rust => L["CategoryDesc_DotNetDeepDive_Rust"],
-                ProgrammingLanguage.Go => L["CategoryDesc_DotNetDeepDive_Go"],
-                ProgrammingLanguage.NodeJs => L["CategoryDesc_DotNetDeepDive_NodeJs"],
-                _ => string.Format(L["CategoryDesc_DotNetDeepDive_Default"], langName)
+                ProgrammingLanguage.CSharp => L["CategoryDesc_LanguageDeepDive_CSharp"],
+                ProgrammingLanguage.Python => L["CategoryDesc_LanguageDeepDive_Python"],
+                ProgrammingLanguage.Java => L["CategoryDesc_LanguageDeepDive_Java"],
+                ProgrammingLanguage.Rust => L["CategoryDesc_LanguageDeepDive_Rust"],
+                ProgrammingLanguage.Go => L["CategoryDesc_LanguageDeepDive_Go"],
+                ProgrammingLanguage.NodeJs => L["CategoryDesc_LanguageDeepDive_NodeJs"],
+                _ => string.Format(L["CategoryDesc_LanguageDeepDive_Default"], langName)
             },
             CategoryType.CleanCode => string.Format(L["CategoryDesc_CleanCode"], langName),
             CategoryType.ApiDesign => L["CategoryDesc_ApiDesign"],

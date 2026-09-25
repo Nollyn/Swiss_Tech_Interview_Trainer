@@ -98,7 +98,7 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
     [InlineData("en", "CategoryDesc_SystemDesign", "Distributed service design")]
     [InlineData("es", "CategoryDesc_SystemDesign", "Diseño de servicios distribuidos")]
     [InlineData("de", "CategoryDesc_SystemDesign", "Verteiltes Servicedesign")]
-    [InlineData("es", "CategoryDesc_DotNetDeepDive_CSharp", "Gestión de memoria")]
+    [InlineData("es", "CategoryDesc_LanguageDeepDive_CSharp", "Gestión de memoria")]
     [InlineData("es", "CategoryDesc_CleanCode", "Refactorización de code smells")]
     [InlineData("es", "CategoryDesc_ApiDesign", "Contratos REST/gRPC")]
     [InlineData("es", "CategoryDesc_Testing", "Pruebas unitarias")]
@@ -162,8 +162,8 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
         codingCSharp.DisplayName.Should().Be("Coding / Algorithms (C# (.NET))");
         codingPython.DisplayName.Should().Be("Coding / Algorithms (Python)");
 
-        var deepDiveCSharp = dashboardCSharp.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
-        var deepDivePython = dashboardPython.Categories.First(c => c.Category == CategoryType.DotNetDeepDive);
+        var deepDiveCSharp = dashboardCSharp.Categories.First(c => c.Category == CategoryType.LanguageDeepDive);
+        var deepDivePython = dashboardPython.Categories.First(c => c.Category == CategoryType.LanguageDeepDive);
         deepDiveCSharp.DisplayName.Should().Be(".NET / C# Deep Dive");
         deepDivePython.DisplayName.Should().Be("Python Deep Dive");
         deepDivePython.ShortDescription.Should().Contain("GIL");
@@ -238,7 +238,7 @@ public class LocalizationAndQueryOptimizationTests : IAsyncLifetime
     [InlineData("en", CategoryType.Coding, "Zurich Financial Exchange — Order Stream Rate & Volume Tracker", "Problem Specification", "Constraints")]
     [InlineData("es", CategoryType.SystemDesign, "Servicio Suizo de Notificación de Pagos Interbancarios", "Requisitos", "Entregable")]
     [InlineData("de", CategoryType.SystemDesign, "Schweizer Interbank-Zahlungsbenachrichtigungsdienst", "Anforderungen", "Ergebnis")]
-    [InlineData("es", CategoryType.DotNetDeepDive, "Optimización de Memoria CLR y Span<T>", "Requisitos", "")]
+    [InlineData("es", CategoryType.LanguageDeepDive, "Optimización de Memoria CLR y Span<T>", "Requisitos", "")]
     [InlineData("es", CategoryType.CleanCode, "Refactorización del Motor de Tarifas de Gestión Patrimonial", "Tareas", "")]
     [InlineData("es", CategoryType.ApiDesign, "Controlador de API de Transferencias SEPA / SIC Suizas Idempotente", "Requisitos", "")]
     [InlineData("es", CategoryType.Testing, "Validación de Checksum de IBAN Suizo (CH / LI) mediante TDD", "Requisitos", "")]

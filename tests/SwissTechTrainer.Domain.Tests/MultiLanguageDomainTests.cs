@@ -52,25 +52,25 @@ public class MultiLanguageDomainTests
     public void DeepDiveRubrics_AdaptsSpecificallyPerLanguage()
     {
         // Python: GIL, Asyncio, Decorators/Generators
-        var pythonRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.DotNetDeepDive, ProgrammingLanguage.Python);
+        var pythonRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.LanguageDeepDive, ProgrammingLanguage.Python);
         pythonRubric.Should().Contain(r => r.Name.Contains("GIL", StringComparison.OrdinalIgnoreCase));
         pythonRubric.Should().Contain(r => r.Name.Contains("Asyncio", StringComparison.OrdinalIgnoreCase));
 
         // Java: JVM, Modern GC, Concurrency
-        var javaRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.DotNetDeepDive, ProgrammingLanguage.Java);
+        var javaRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.LanguageDeepDive, ProgrammingLanguage.Java);
         javaRubric.Should().Contain(r => r.Name.Contains("JVM", StringComparison.OrdinalIgnoreCase));
         javaRubric.Should().Contain(r => r.Name.Contains("Concurrency", StringComparison.OrdinalIgnoreCase));
 
         // Rust: Ownership, Borrow Checker, Lifetimes
-        var rustRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.DotNetDeepDive, ProgrammingLanguage.Rust);
+        var rustRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.LanguageDeepDive, ProgrammingLanguage.Rust);
         rustRubric.Should().Contain(r => r.Name.Contains("Borrow Checker", StringComparison.OrdinalIgnoreCase) || r.Name.Contains("Ownership", StringComparison.OrdinalIgnoreCase));
 
         // Go: Goroutines, Channels, CSP
-        var goRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.DotNetDeepDive, ProgrammingLanguage.Go);
+        var goRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.LanguageDeepDive, ProgrammingLanguage.Go);
         goRubric.Should().Contain(r => r.Name.Contains("Goroutines", StringComparison.OrdinalIgnoreCase));
 
         // Node.js: V8, Event Loop
-        var nodeRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.DotNetDeepDive, ProgrammingLanguage.NodeJs);
+        var nodeRubric = CategoryRubricCatalog.GetRubricForCategory(CategoryType.LanguageDeepDive, ProgrammingLanguage.NodeJs);
         nodeRubric.Should().Contain(r => r.Name.Contains("V8", StringComparison.OrdinalIgnoreCase));
         nodeRubric.Should().Contain(r => r.Name.Contains("Event Loop", StringComparison.OrdinalIgnoreCase));
     }

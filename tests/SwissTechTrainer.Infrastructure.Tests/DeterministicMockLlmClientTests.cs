@@ -16,7 +16,7 @@ public class DeterministicMockLlmClientTests
     {
         var context = new ExerciseGenerationContext
         {
-            Category = CategoryType.DotNetDeepDive,
+            Category = CategoryType.LanguageDeepDive,
             Level = DifficultyLevel.Level2,
             IncludeHintModeContext = true
         };
