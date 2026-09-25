@@ -20,7 +20,7 @@ public static class DatabaseSeeder
         var defaultUser = await context.UserProfiles.Include(u => u.Progresses).OrderBy(u => u.Id).FirstOrDefaultAsync(ct);
         if (defaultUser == null)
         {
-            defaultUser = UserProfile.Create("Swiss Tech Lead Candidate", "candidate.zurich@swissdev.ch", "Senior Developer / Tech Lead (Zurich)");
+            defaultUser = UserProfile.Create("Swiss Tech Lead Candidate", "candidate.swiss@swissdev.ch", "Senior Developer / Tech Lead");
             context.UserProfiles.Add(defaultUser);
             await context.SaveChangesAsync(ct);
         }

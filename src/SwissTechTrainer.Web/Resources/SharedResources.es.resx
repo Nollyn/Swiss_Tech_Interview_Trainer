@@ -58,7 +58,7 @@
     <value>Entrenador de Entrevistas Tech Suiza</value>
   </data>
   <data name="AppSubtitle" xml:space="preserve">
-    <value>Track Zurich Senior &amp; Tech Lead</value>
+    <value>Track Senior &amp; Tech Lead</value>
   </data>
   <data name="NavDashboard" xml:space="preserve">
     <value>Panel Principal</value>
@@ -87,7 +87,7 @@
     <value>{0} / {1} Niveles</value>
   </data>
   <data name="QualityGateBadge" xml:space="preserve">
-    <value>Quality Gate: Umbral de Maestría ≥ 90%</value>
+    <value>Filtro de Calidad: Umbral de Maestría ≥ 90%</value>
   </data>
   <data name="OverallReadiness" xml:space="preserve">
     <value>Preparación Global</value>
