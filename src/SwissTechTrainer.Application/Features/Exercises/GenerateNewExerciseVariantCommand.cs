@@ -24,7 +24,8 @@ public sealed record GenerateNewExerciseVariantCommand(CategoryType Category, Pr
 public sealed class GenerateNewExerciseVariantCommandHandler(
     IApplicationDbContext context,
     ILLMClient llmClient,
-    ICurrentUserService currentUserService) : IRequestHandler<GenerateNewExerciseVariantCommand, ExerciseDto>
+    ICurrentUserService currentUserService,
+    IExerciseLocalizationService exerciseLocalizer) : IRequestHandler<GenerateNewExerciseVariantCommand, ExerciseDto>
 {
     /// <summary>
     /// Handles generating a fresh non-repetitive exercise variant using negative prompting against prior exercises.
@@ -96,10 +97,13 @@ public sealed class GenerateNewExerciseVariantCommandHandler(
             Level = newExercise.Level,
             LevelLabel = newExercise.Level.GetLabel(),
             Title = newExercise.Title,
+            LocalizedTitle = exerciseLocalizer.LocalizeTitle(newExercise.Category, newExercise.Level, newExercise.Title),
             Description = newExercise.Description,
+            LocalizedDescription = exerciseLocalizer.LocalizeDescription(newExercise.Category, newExercise.Level, newExercise.Description),
             StarterCode = newExercise.StarterCode,
             ExpectedOutputFormat = newExercise.ExpectedOutputFormat,
             Hints = newExercise.Hints,
+            LocalizedHints = exerciseLocalizer.LocalizeHints(newExercise.Category, newExercise.Level, newExercise.Hints),
             HintModeActive = progress.HintModeActive,
             IsAiGenerated = newExercise.IsAIGenerated,
             CreatedAt = newExercise.CreatedAt

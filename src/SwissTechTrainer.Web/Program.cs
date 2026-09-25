@@ -21,6 +21,7 @@ builder.Services.AddDataProtection()
 
 // Configure ASP.NET Core I18N Localization
 builder.Services.AddLocalization();
+builder.Services.AddHttpContextAccessor();
 
 // Add Application and Infrastructure DI layers
 builder.Services.AddApplication();
@@ -59,12 +60,33 @@ app.MapGet("/api/culture/set", (string culture, string? redirectUri, HttpContext
             CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
             new CookieOptions
             {
+                Path = "/",
                 Expires = DateTimeOffset.UtcNow.AddYears(1),
                 IsEssential = true,
                 SameSite = SameSiteMode.Lax
             }
         );
     }
+
+    string targetUrl = GetSafeLocalRedirect(redirectUri);
+    return Results.LocalRedirect(targetUrl);
+});
+
+// Theme switching endpoint that sets app_theme cookie
+app.MapGet("/api/theme/set", (string theme, string? redirectUri, HttpContext httpContext) =>
+{
+    var selectedTheme = theme == "light" ? "light" : "dark";
+    httpContext.Response.Cookies.Append(
+        "app_theme",
+        selectedTheme,
+        new CookieOptions
+        {
+            Path = "/",
+            Expires = DateTimeOffset.UtcNow.AddYears(1),
+            IsEssential = true,
+            SameSite = SameSiteMode.Lax
+        }
+    );
 
     string targetUrl = GetSafeLocalRedirect(redirectUri);
     return Results.LocalRedirect(targetUrl);

@@ -1,5 +1,8 @@
+@using System.Globalization
+@inject IHttpContextAccessor HttpContextAccessor
+
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="@CurrentCulture" data-bs-theme="@CurrentTheme">
 
 <head>
     <meta charset="utf-8" />
@@ -12,10 +15,23 @@
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
-<body class="bg-dark text-light">
+<body class="@(CurrentTheme == "dark" ? "bg-dark text-light" : "bg-light text-dark")">
     <Routes @rendermode="InteractiveServer" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="theme.js"></script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>
+
+@code {
+    private string CurrentCulture => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    private string CurrentTheme
+    {
+        get
+        {
+            var cookie = HttpContextAccessor.HttpContext?.Request.Cookies["app_theme"];
+            return cookie == "light" ? "light" : "dark";
+        }
+    }
+}

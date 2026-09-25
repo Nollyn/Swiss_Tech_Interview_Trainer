@@ -5,34 +5,39 @@
     <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 py-1 px-2" 
             type="button" 
             id="cultureDropdown" 
-            data-bs-toggle="dropdown" 
-            aria-expanded="false">
+            @onclick="ToggleDropdown"
+            aria-expanded="@_isOpen">
         <span>@CurrentFlag</span>
         <span class="d-none d-sm-inline small">@CurrentLanguageName</span>
     </button>
-    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="cultureDropdown">
+    <ul class="dropdown-menu dropdown-menu-end shadow @(_isOpen ? "show" : "")" aria-labelledby="cultureDropdown">
         <li @key="@("en")">
-            <a class="dropdown-item @(CurrentCulture == "en" ? "active" : "") d-flex align-items-center gap-2" 
-               href="@GetCultureChangeUri("en")">
+            <button type="button" 
+                    class="dropdown-item @(CurrentCulture == "en" ? "active" : "") d-flex align-items-center gap-2" 
+                    @onclick='() => ChangeCulture("en")'>
                 <span>🇬🇧</span> English
-            </a>
+            </button>
         </li>
         <li @key="@("de")">
-            <a class="dropdown-item @(CurrentCulture == "de" ? "active" : "") d-flex align-items-center gap-2" 
-               href="@GetCultureChangeUri("de")">
+            <button type="button" 
+                    class="dropdown-item @(CurrentCulture == "de" ? "active" : "") d-flex align-items-center gap-2" 
+                    @onclick='() => ChangeCulture("de")'>
                 <span>🇩🇪</span> Deutsch
-            </a>
+            </button>
         </li>
         <li @key="@("es")">
-            <a class="dropdown-item @(CurrentCulture == "es" ? "active" : "") d-flex align-items-center gap-2" 
-               href="@GetCultureChangeUri("es")">
+            <button type="button" 
+                    class="dropdown-item @(CurrentCulture == "es" ? "active" : "") d-flex align-items-center gap-2" 
+                    @onclick='() => ChangeCulture("es")'>
                 <span>🇪🇸</span> Español
-            </a>
+            </button>
         </li>
     </ul>
 </div>
 
 @code {
+    private bool _isOpen;
+
     private string CurrentCulture => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant();
 
     private string CurrentFlag => CurrentCulture switch
@@ -49,9 +54,17 @@
         _ => "English"
     };
 
-    private string GetCultureChangeUri(string culture)
+    private void ToggleDropdown()
     {
-        var uri = Uri.EscapeDataString(Navigation.Uri);
-        return $"/api/culture/set?culture={culture}&redirectUri={uri}";
+        _isOpen = !_isOpen;
+    }
+
+    private void ChangeCulture(string culture)
+    {
+        _isOpen = false;
+        var relativeUri = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var targetUri = string.IsNullOrEmpty(relativeUri) ? "/" : "/" + relativeUri;
+        var encodedTarget = Uri.EscapeDataString(targetUri);
+        Navigation.NavigateTo($"/api/culture/set?culture={culture}&redirectUri={encodedTarget}", forceLoad: true);
     }
 }

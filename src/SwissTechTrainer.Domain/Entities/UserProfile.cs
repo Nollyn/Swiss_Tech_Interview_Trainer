@@ -64,7 +64,7 @@ public class UserProfile
     public UserProfile(string username, string email, string targetRole = "Senior Developer / Tech Lead (Zurich)")
     {
         Id = Guid.NewGuid();
-        Username = string.IsNullOrWhiteSpace(username) ? "SwissCandidate" : username.Trim();
+        Username = string.IsNullOrWhiteSpace(username) ? "Swiss Tech Lead Candidate" : username.Trim();
         Email = string.IsNullOrWhiteSpace(email) ? "candidate@swisstech.ch" : email.Trim();
         TargetRole = string.IsNullOrWhiteSpace(targetRole) ? "Senior Developer / Tech Lead (Zurich)" : targetRole.Trim();
         CreatedAt = DateTime.UtcNow;

@@ -1,0 +1,71 @@
+﻿@inject IJSRuntime JS
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 py-1 px-2"
+            type="button"
+            id="themeDropdown"
+            @onclick="ToggleDropdown"
+            aria-expanded="@_isOpen"
+            title="@L["ToggleTheme"]">
+        <i class="bi @(_currentTheme == "light" ? "bi-sun-fill text-warning" : "bi-moon-stars-fill text-info")"></i>
+        <span class="d-none d-sm-inline small">@(_currentTheme == "light" ? L["ThemeLight"] : L["ThemeDark"])</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow @(_isOpen ? "show" : "")" aria-labelledby="themeDropdown">
+        <li>
+            <button type="button" class="dropdown-item @(_currentTheme == "light" ? "active" : "") d-flex align-items-center gap-2"
+                    @onclick='() => SetThemeAsync("light")'>
+                <i class="bi bi-sun-fill text-warning"></i> @L["ThemeLight"]
+            </button>
+        </li>
+        <li>
+            <button type="button" class="dropdown-item @(_currentTheme == "dark" ? "active" : "") d-flex align-items-center gap-2"
+                    @onclick='() => SetThemeAsync("dark")'>
+                <i class="bi bi-moon-stars-fill text-info"></i> @L["ThemeDark"]
+            </button>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool _isOpen;
+    private string _currentTheme = "dark";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var theme = await JS.InvokeAsync<string>("themeManager.getTheme");
+                if (!string.IsNullOrWhiteSpace(theme) && theme != _currentTheme)
+                {
+                    _currentTheme = theme;
+                    StateHasChanged();
+                }
+            }
+            catch
+            {
+                // Fallback to default
+            }
+        }
+    }
+
+    private void ToggleDropdown()
+    {
+        _isOpen = !_isOpen;
+    }
+
+    private async Task SetThemeAsync(string theme)
+    {
+        _isOpen = false;
+        _currentTheme = theme;
+        try
+        {
+            await JS.InvokeVoidAsync("themeManager.setTheme", theme);
+        }
+        catch
+        {
+            // Ignored if JS not yet attached
+        }
+    }
+}

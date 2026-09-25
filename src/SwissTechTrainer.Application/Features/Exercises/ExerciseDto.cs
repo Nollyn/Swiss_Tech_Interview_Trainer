@@ -48,9 +48,19 @@ public sealed record ExerciseDto
     public string Title { get; init; } = string.Empty;
 
     /// <summary>
+    /// Gets the localized exercise title for the current culture.
+    /// </summary>
+    public string LocalizedTitle { get; init; } = string.Empty;
+
+    /// <summary>
     /// Gets the problem statement and scenario description.
     /// </summary>
     public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the localized problem statement and scenario description markdown for the current culture.
+    /// </summary>
+    public string LocalizedDescription { get; init; } = string.Empty;
 
     /// <summary>
     /// Gets the starter C# code boilerplate.
@@ -66,6 +76,11 @@ public sealed record ExerciseDto
     /// Gets the guidance hints available when Hint Mode is active.
     /// </summary>
     public string Hints { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the localized guidance hints markdown for the current culture.
+    /// </summary>
+    public string LocalizedHints { get; init; } = string.Empty;
 
     /// <summary>
     /// Gets a value indicating whether Hint Mode is currently unlocked for the user.

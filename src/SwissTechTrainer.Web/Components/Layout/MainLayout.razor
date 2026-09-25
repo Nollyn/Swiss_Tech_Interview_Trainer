@@ -1,7 +1,8 @@
 @inherits LayoutComponentBase
+@inject ICurrentUserService CurrentUserService
 
 <div class="page d-flex flex-column min-vh-100">
-    <header class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4 sticky-top">
+    <header class="navbar navbar-expand-lg border-bottom px-4 sticky-top bg-body-tertiary">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/">
             <span class="badge bg-danger text-white px-2 py-2 fs-3 fw-bold d-inline-flex align-items-center">+</span>
             <span class="fw-bold tracking-tight">@L["AppTitle"]</span>
@@ -24,24 +25,27 @@
                     </NavLink>
                 </li>
                 <li class="nav-item">
+                    <ThemeSelector />
+                </li>
+                <li class="nav-item">
                     <CultureSelector />
                 </li>
                 <li class="nav-item">
                     <span class="badge bg-outline-secondary border text-muted py-2 px-3">
-                        <i class="bi bi-person-badge text-info me-1"></i> SwissTechLead_Candidate
+                        <i class="bi bi-person-badge text-info me-1"></i> @(CurrentUserService.Username.Replace('_', ' '))
                     </span>
                 </li>
             </ul>
         </div>
     </header>
 
-    <main class="flex-grow-1 bg-dark text-light p-4">
+    <main class="flex-grow-1 p-4">
         <div class="container-xxl">
             @Body
         </div>
     </main>
 
-    <footer class="footer bg-black text-secondary border-top border-secondary py-3 text-center small">
+    <footer class="footer bg-body-tertiary text-secondary border-top py-3 text-center small">
         <div class="container">
             <span class="text-muted">Swiss Tech Interview Trainer &copy; 2026 — Optimized for Zurich Senior / Tech Lead hiring processes (.NET 10 Clean Architecture).</span>
         </div>

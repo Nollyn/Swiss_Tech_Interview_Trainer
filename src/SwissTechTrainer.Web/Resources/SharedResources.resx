@@ -282,4 +282,21 @@
   <data name="Failed" xml:space="preserve">
     <value>Failed</value>
   </data>
+  
+  <!-- Theme & User -->
+  <data name="Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ToggleTheme" xml:space="preserve">
+    <value>Toggle Theme</value>
+  </data>
+  <data name="CandidateRoleBadge" xml:space="preserve">
+    <value>Swiss Tech Lead Candidate</value>
+  </data>
 </root>

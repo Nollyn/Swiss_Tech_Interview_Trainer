@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SwissTechTrainer.Application.Common.Behaviors;
+using SwissTechTrainer.Application.Features.Exercises;
 
 namespace SwissTechTrainer.Application;
 
@@ -21,6 +22,7 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
 
         services.AddLogging();
+        services.AddSingleton<IExerciseLocalizationService, ExerciseLocalizationService>();
 
         services.AddMediatR(cfg =>
         {

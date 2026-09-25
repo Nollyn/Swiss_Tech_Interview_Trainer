@@ -1,10 +1,12 @@
 @page "/exercise/{CategoryName}"
 @using System.IO
+@using System.Globalization
 @inject IMediator Mediator
 @inject ICodeFileParser CodeFileParser
+@inject IExerciseLocalizationService ExerciseLocalizer
 @inject NavigationManager Navigation
 
-<PageTitle>@(Exercise?.Title ?? "Exercise Room") | Swiss Tech Interview Trainer</PageTitle>
+<PageTitle>@(DisplayTitle) | Swiss Tech Interview Trainer</PageTitle>
 
 @if (IsLoading)
 {
@@ -53,25 +55,25 @@ else
         <div class="col-lg-5">
             <div class="card p-3 h-100 border-secondary">
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
-                    <h5 class="fw-bold text-info mb-0">@Exercise.Title</h5>
+                    <h5 class="fw-bold text-info mb-0">@DisplayTitle</h5>
                     <span class="badge bg-dark border small">@Exercise.ExpectedOutputFormat</span>
                 </div>
 
                 <div class="overflow-auto pe-2" style="max-height: 600px;">
-                    <MarkdownViewer Content="@Exercise.Description" />
+                    <MarkdownViewer Content="@DisplayDescription" />
 
-                    @if (!string.IsNullOrWhiteSpace(Exercise.Hints))
+                    @if (!string.IsNullOrWhiteSpace(DisplayHints))
                     {
                         <div class="accordion mt-3" id="hintAccordion">
-                            <div class="accordion-item bg-dark border-warning">
+                            <div class="accordion-item bg-body border-warning">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button bg-dark text-warning collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hintCollapse">
+                                    <button class="accordion-button bg-body text-warning collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hintCollapse">
                                         <i class="bi bi-lightbulb-fill me-2"></i> @L["DiagnosticHints"]
                                     </button>
                                 </h2>
                                 <div id="hintCollapse" class="accordion-collapse collapse @(Exercise.HintModeActive ? "show" : "")" data-bs-parent="#hintAccordion">
-                                    <div class="accordion-body small text-light bg-dark-subtle">
-                                        <MarkdownViewer Content="@Exercise.Hints" />
+                                    <div class="accordion-body small text-body bg-body-secondary">
+                                        <MarkdownViewer Content="@DisplayHints" />
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +117,7 @@ else
 
                 <div class="mb-3">
                     <label class="form-label small text-secondary">@L["AdditionalNotesLabel"]</label>
-                    <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" 
+                    <input type="text" class="form-control form-control-sm bg-body text-body border-secondary" 
                            @bind="AdditionalNotes" 
                            disabled="@IsEvaluating"
                            placeholder="e.g. Assuming SQL Server / Postgres isolation levels, idempotency keys, zero-allocation hot paths..." />
@@ -143,14 +145,14 @@ else
     <!-- Live Multi-Stage Evaluation Loading State -->
     @if (IsEvaluating)
     {
-        <div class="card p-4 border-info bg-dark-subtle mb-4">
+        <div class="card p-4 border-info bg-body-secondary mb-4">
             <h5 class="text-info fw-bold mb-3"><i class="bi bi-cpu-fill me-2"></i>Evaluator-Optimizer Pipeline in Progress...</h5>
-            <div class="progress mb-3 bg-dark" style="height: 12px;">
+            <div class="progress mb-3 bg-secondary-subtle" style="height: 12px;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: @($"{EvaluationStagePercent}%");"></div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="badge bg-info text-dark fs-6">Stage @(EvaluationStage)/4</span>
-                <span class="text-light fs-6 fw-semibold">@EvaluationStageMessage</span>
+                <span class="text-body fs-6 fw-semibold">@EvaluationStageMessage</span>
             </div>
         </div>
     }
@@ -158,7 +160,7 @@ else
     <!-- Evaluation Results View -->
     @if (EvaluationResult != null && !IsEvaluating)
     {
-        <div class="card p-4 mb-4 border-@(EvaluationResult.PassedThreshold ? "success" : "warning") bg-dark-subtle">
+        <div class="card p-4 mb-4 border-@(EvaluationResult.PassedThreshold ? "success" : "warning") bg-body-secondary">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-3 border-bottom border-secondary gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="score-badge bg-@(EvaluationResult.PassedThreshold ? "success" : "warning") text-dark">
@@ -207,7 +209,7 @@ else
             <!-- General Feedback Markdown -->
             <div class="mb-4">
                 <h6 class="fw-bold text-info"><i class="bi bi-chat-left-text me-2"></i>Evaluator Assessment & Rationale</h6>
-                <div class="p-3 bg-dark rounded border border-secondary">
+                <div class="p-3 bg-body rounded border border-secondary">
                     <MarkdownViewer Content="@EvaluationResult.GeneralFeedback" />
                 </div>
             </div>
@@ -216,7 +218,7 @@ else
             <div class="mb-4">
                 <h6 class="fw-bold text-info mb-3"><i class="bi bi-list-check me-2"></i>Deterministic Criteria Breakdown (0-100)</h6>
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover border-secondary align-middle">
+                    <table class="table table-hover border-secondary align-middle">
                         <thead>
                             <tr class="text-secondary small">
                                 <th>Criterion</th>
@@ -231,7 +233,7 @@ else
                             {
                                 <tr @key="crit.Name">
                                     <td class="fw-semibold">@crit.Name</td>
-                                    <td><span class="badge bg-dark-subtle border">@crit.Weight%</span></td>
+                                    <td><span class="badge bg-body-secondary text-body border">@crit.Weight%</span></td>
                                     <td>
                                         <span class="badge bg-@(crit.Score >= 90 ? "success" : crit.Score >= 75 ? "warning text-dark" : "danger") fs-6">
                                             @crit.Score%
@@ -271,7 +273,7 @@ else
         <div class="card p-3 border-secondary mb-4">
             <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-clock-history me-2"></i>Category Attempt History (@History.Count)</h6>
             <div class="table-responsive">
-                <table class="table table-dark table-sm table-hover border-secondary small align-middle mb-0">
+                <table class="table table-sm table-hover border-secondary small align-middle mb-0">
                     <thead>
                         <tr class="text-secondary">
                             <th>Date</th>
@@ -287,7 +289,7 @@ else
                             <tr @key="@(item.SubmissionId != Guid.Empty ? item.SubmissionId.ToString() : $"{item.ExerciseTitle}-{item.SubmittedAt.Ticks}")">
                                 <td>@item.SubmittedAt.ToLocalTime().ToString("g")</td>
                                 <td>@item.ExerciseTitle</td>
-                                <td><span class="badge bg-dark border">@item.Level</span></td>
+                                <td><span class="badge bg-body-secondary text-body border">@item.Level</span></td>
                                 <td><strong>@item.DeterministicScore%</strong></td>
                                 <td>
                                     @if (item.PassedThreshold)
@@ -332,6 +334,10 @@ else
     private int EvaluationStage = 1;
     private int EvaluationStagePercent = 25;
     private string EvaluationStageMessage = "Analyzing code structure and boundary conditions...";
+
+    private string DisplayTitle => Exercise == null ? "Exercise Room" : ExerciseLocalizer.LocalizeTitle(Exercise.Category, Exercise.Level, Exercise.Title);
+    private string DisplayDescription => Exercise == null ? string.Empty : ExerciseLocalizer.LocalizeDescription(Exercise.Category, Exercise.Level, Exercise.Description);
+    private string DisplayHints => Exercise == null ? string.Empty : ExerciseLocalizer.LocalizeHints(Exercise.Category, Exercise.Level, Exercise.Hints);
 
     protected override async Task OnParametersSetAsync()
     {

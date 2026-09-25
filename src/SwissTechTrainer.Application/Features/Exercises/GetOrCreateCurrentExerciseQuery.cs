@@ -24,7 +24,8 @@ public sealed record GetOrCreateCurrentExerciseQuery(CategoryType Category, Prog
 public sealed class GetOrCreateCurrentExerciseQueryHandler(
     IApplicationDbContext context,
     ILLMClient llmClient,
-    ICurrentUserService currentUserService) : IRequestHandler<GetOrCreateCurrentExerciseQuery, ExerciseDto>
+    ICurrentUserService currentUserService,
+    IExerciseLocalizationService exerciseLocalizer) : IRequestHandler<GetOrCreateCurrentExerciseQuery, ExerciseDto>
 {
     /// <summary>
     /// Handles resolving or generating the candidate's active exercise.
@@ -73,7 +74,7 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
             // If user hasn't passed it yet, keep serving this exercise so reload doesn't wipe their exercise
             if (!alreadyPassedThisExercise)
             {
-                return MapToDto(latestExercise, progress.HintModeActive);
+                return MapToDto(latestExercise, progress.HintModeActive, exerciseLocalizer);
             }
         }
 
@@ -106,10 +107,10 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
         context.Exercises.Add(newExercise);
         await context.SaveChangesAsync(cancellationToken);
 
-        return MapToDto(newExercise, progress.HintModeActive);
+        return MapToDto(newExercise, progress.HintModeActive, exerciseLocalizer);
     }
 
-    private static ExerciseDto MapToDto(Exercise exercise, bool hintModeActive) => new()
+    private static ExerciseDto MapToDto(Exercise exercise, bool hintModeActive, IExerciseLocalizationService localizer) => new()
     {
         Id = exercise.Id,
         Category = exercise.Category,
@@ -119,10 +120,13 @@ public sealed class GetOrCreateCurrentExerciseQueryHandler(
         Level = exercise.Level,
         LevelLabel = exercise.Level.GetLabel(),
         Title = exercise.Title,
+        LocalizedTitle = localizer.LocalizeTitle(exercise.Category, exercise.Level, exercise.Title),
         Description = exercise.Description,
+        LocalizedDescription = localizer.LocalizeDescription(exercise.Category, exercise.Level, exercise.Description),
         StarterCode = exercise.StarterCode,
         ExpectedOutputFormat = exercise.ExpectedOutputFormat,
         Hints = exercise.Hints,
+        LocalizedHints = localizer.LocalizeHints(exercise.Category, exercise.Level, exercise.Hints),
         HintModeActive = hintModeActive,
         IsAiGenerated = exercise.IsAIGenerated,
         CreatedAt = exercise.CreatedAt

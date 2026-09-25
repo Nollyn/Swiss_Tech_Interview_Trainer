@@ -17,7 +17,7 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
     public Guid UserId => _cachedUserId ?? Guid.Empty;
 
     /// <inheritdoc />
-    public string Username => "SwissTechLead_Candidate";
+    public string Username => "Swiss Tech Lead Candidate";
 
     /// <inheritdoc />
     public async Task<Guid> GetOrCreateCurrentUserIdAsync(CancellationToken ct = default)

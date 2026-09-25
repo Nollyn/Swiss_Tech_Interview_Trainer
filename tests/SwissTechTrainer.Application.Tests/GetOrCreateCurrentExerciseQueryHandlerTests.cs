@@ -38,7 +38,7 @@ public class GetOrCreateCurrentExerciseQueryHandlerTests : IDisposable
         _currentUserService.GetOrCreateCurrentUserIdAsync(Arg.Any<CancellationToken>()).Returns(_userId);
         _currentUserService.Username.Returns("TestCandidate");
 
-        _sut = new GetOrCreateCurrentExerciseQueryHandler(_context, _llmClient, _currentUserService);
+        _sut = new GetOrCreateCurrentExerciseQueryHandler(_context, _llmClient, _currentUserService, new ExerciseLocalizationService());
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 @page "/"
+@using System.Globalization
 @inject IMediator Mediator
 @inject NavigationManager Navigation
 
@@ -6,7 +7,7 @@
 
 @if (_dashboard == null)
 {
-    <div class="d-flex justify-content-center py-5">
+    <div class="d-flex justify-content-center py-5" @key="@("loading-dashboard-spinner")">
         <div class="spinner-border text-danger" role="status">
             <span class="visually-hidden">Loading candidate dashboard...</span>
         </div>
@@ -14,116 +15,118 @@
 }
 else
 {
-    <!-- Candidate Profile & Focus Banner -->
-    <div class="card mb-4 border-secondary p-4 bg-gradient">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="badge bg-danger fs-6 px-3 py-2">🇨🇭 @L["HiringTrackBadge"]</span>
-                    <h3 class="mb-0 fw-bold">@_dashboard.Username</h3>
-                </div>
-                <p class="text-secondary mb-2">
-                    @L["TargetRoleLabel"] <strong class="text-light">@_dashboard.TargetRole</strong>
-                </p>
-                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary small">
-                    <span><i class="bi bi-trophy text-warning me-1"></i> @L["CompletedCountLabel"] <strong>@string.Format(L["CompletedLevelsTotal"], _dashboard.TotalCompletedExercises, 35)</strong></span>
-                    <span><i class="bi bi-shield-check text-success me-1"></i> <strong>@L["QualityGateBadge"]</strong></span>
-                </div>
-            </div>
-
-            <!-- Backend Language Selector & Readiness Gauge -->
-            <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
-                <div class="d-flex flex-column flex-sm-row justify-content-lg-end align-items-center gap-3">
-                    <div class="text-start">
-                        <label class="form-label small text-secondary text-uppercase fw-semibold mb-1 d-block">
-                            <i class="bi bi-code-square text-danger me-1"></i> @L["SelectBackendLanguage"]
-                        </label>
-                        <select class="form-select form-select-sm bg-dark text-light border-secondary shadow-sm" 
-                                style="min-width: 160px;"
-                                @bind="SelectedLanguage" 
-                                @bind:after="OnLanguageChangedAsync">
-                            @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
-                            {
-                                <option value="@lang" @key="lang">@lang.GetDisplayName()</option>
-                            }
-                        </select>
+    <div @key="@($"dashboard-main-container-{_selectedLanguage}_{CurrentCulture}")">
+        <!-- Candidate Profile & Focus Banner -->
+        <div class="card mb-4 border-secondary p-4 bg-gradient">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge bg-danger fs-6 px-3 py-2">🇨🇭 @L["HiringTrackBadge"]</span>
+                        <h3 class="mb-0 fw-bold">@(_dashboard.Username.Replace('_', ' '))</h3>
                     </div>
+                    <p class="text-secondary mb-2">
+                        @L["TargetRoleLabel"] <strong class="text-light-emphasis">@_dashboard.TargetRole</strong>
+                    </p>
+                    <div class="d-flex flex-wrap align-items-center gap-3 text-secondary small">
+                        <span><i class="bi bi-trophy text-warning me-1"></i> @L["CompletedCountLabel"] <strong>@string.Format(L["CompletedLevelsTotal"], _dashboard.TotalCompletedExercises, 35)</strong></span>
+                        <span><i class="bi bi-shield-check text-success me-1"></i> <strong>@L["QualityGateBadge"]</strong></span>
+                    </div>
+                </div>
 
-                    <div class="d-inline-block text-center p-3 rounded bg-dark border border-secondary shadow-sm">
-                        <div class="fs-2 fw-bold text-info">@_dashboard.OverallMasteryPercentage%</div>
-                        <div class="small text-secondary text-uppercase tracking-wide">@L["OverallReadiness"]</div>
+                <!-- Backend Language Selector & Readiness Gauge -->
+                <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+                    <div class="d-flex flex-column flex-sm-row justify-content-lg-end align-items-center gap-3">
+                        <div class="text-start">
+                            <label class="form-label small text-secondary text-uppercase fw-semibold mb-1 d-block">
+                                <i class="bi bi-code-square text-danger me-1"></i> @L["SelectBackendLanguage"]
+                            </label>
+                            <select class="form-select form-select-sm bg-body text-body border-secondary shadow-sm" 
+                                    style="min-width: 160px;"
+                                    @bind="SelectedLanguage" 
+                                    @bind:after="OnLanguageChangedAsync">
+                                @foreach (var lang in Enum.GetValues<ProgrammingLanguage>())
+                                {
+                                    <option value="@lang" @key="@($"lang-opt-{lang}")">@lang.GetDisplayName()</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="d-inline-block text-center p-3 rounded bg-body-secondary border border-secondary shadow-sm">
+                            <div class="fs-2 fw-bold text-info">@_dashboard.OverallMasteryPercentage%</div>
+                            <div class="small text-secondary text-uppercase tracking-wide">@L["OverallReadiness"]</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Category Grid Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">
-            <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>@L["InterviewCategoriesTitle"]
-            <span class="badge @_selectedLanguage.GetBadgeClass() ms-2 fs-7" @key="@($"header-badge-{_selectedLanguage}")">@_selectedLanguage.GetDisplayName()</span>
-        </h4>
-        <span class="text-secondary small">@L["InterviewCategoriesSubtitle"]</span>
-    </div>
+        <!-- Category Grid Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>@L["InterviewCategoriesTitle"]
+                <span class="badge @_selectedLanguage.GetBadgeClass() ms-2 fs-7" @key="@($"header-badge-{_selectedLanguage}")">@_selectedLanguage.GetDisplayName()</span>
+            </h4>
+            <span class="text-secondary small">@L["InterviewCategoriesSubtitle"]</span>
+        </div>
 
-    <!-- Category Grid -->
-    <div class="row g-4">
-        @foreach (var cat in _dashboard.Categories)
-        {
-            <div class="col-md-6 col-xl-4" @key="@($"{cat.Category}_{_selectedLanguage}")">
-                <div class="card category-card h-100 p-3 position-relative">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="category-icon-box">
-                                    <i class="bi @cat.Icon fs-4"></i>
+        <!-- Category Grid -->
+        <div class="row g-4">
+            @foreach (var cat in _dashboard.Categories)
+            {
+                <div class="col-md-6 col-xl-4" @key="@($"{cat.Category}_{SelectedLanguage}_{CurrentCulture}")">
+                    <div class="card category-card h-100 p-3 position-relative">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="category-icon-box">
+                                        <i class="bi @cat.Icon fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">@cat.DisplayName</h6>
+                                        <span class="badge bg-body-secondary text-body border small">@cat.CurrentLevelLabel</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@cat.DisplayName</h6>
-                                    <span class="badge bg-dark-subtle text-light border small">@cat.CurrentLevelLabel</span>
-                                </div>
-                            </div>
 
-                            @if (cat.HintModeActive)
-                            {
-                                <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts" @key="@($"hint-{cat.Category}-{_selectedLanguage}")">
-                                    <i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]
-                                </span>
-                            }
-                        </div>
-
-                        <p class="text-secondary small mb-3">@GetLocalizedCategoryDescription(cat)</p>
-                    </div>
-
-                    <div>
-                        <div class="d-flex justify-content-between small text-secondary mb-1">
-                            <span>@L["LevelProgress"]</span>
-                            <span>@string.Format(L["CompletedOutOfFive"], cat.CompletedLevelsCount, cat.ProgressPercentage)</span>
-                        </div>
-                        <div class="progress mb-3 bg-black" style="height: 8px;">
-                            <div class="progress-bar bg-danger" role="progressbar" style="width: @($"{cat.ProgressPercentage}%");"></div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
-                            <div class="small text-muted">
-                                @if (cat.HighestScoreAchieved > 0)
+                                @if (cat.HintModeActive)
                                 {
-                                    <span @key="@($"score-{cat.Category}-{_selectedLanguage}")">@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
-                                }
-                                else
-                                {
-                                    <span @key="@($"notstarted-{cat.Category}-{_selectedLanguage}")">@L["NotStarted"]</span>
+                                    <span class="badge bg-warning text-dark" title="Hint Mode Unlocked after 3 failed attempts" @key="@($"hint-{cat.Category}-{SelectedLanguage}")">
+                                        <i class="bi bi-lightbulb-fill"></i> @L["HintModeActiveBadge"]
+                                    </span>
                                 }
                             </div>
-                            <a href="exercise/@cat.Category?lang=@_selectedLanguage" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
-                                @string.Format(L["PracticeLevelButton"], (int)cat.CurrentLevel) <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
+
+                            <p class="text-secondary small mb-3">@GetLocalizedCategoryDescription(cat)</p>
+                        </div>
+
+                        <div>
+                            <div class="d-flex justify-content-between small text-secondary mb-1">
+                                <span>@L["LevelProgress"]</span>
+                                <span>@string.Format(L["CompletedOutOfFive"], cat.CompletedLevelsCount, cat.ProgressPercentage)</span>
+                            </div>
+                            <div class="progress mb-3 bg-secondary-subtle" style="height: 8px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: @($"{cat.ProgressPercentage}%");"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
+                                <div class="small text-muted">
+                                    @if (cat.HighestScoreAchieved > 0)
+                                    {
+                                        <span @key="@($"score-{cat.Category}-{SelectedLanguage}")">@string.Format(L["BestScoreLabel"], cat.HighestScoreAchieved)</span>
+                                    }
+                                    else
+                                    {
+                                        <span @key="@($"notstarted-{cat.Category}-{SelectedLanguage}")">@L["NotStarted"]</span>
+                                    }
+                                </div>
+                                <a href="exercise/@cat.Category?lang=@_selectedLanguage" class="btn btn-sm btn-outline-danger px-3 fw-semibold">
+                                    @string.Format(L["PracticeLevelButton"], (int)cat.CurrentLevel) <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
 }
 
@@ -136,6 +139,8 @@ else
         get => _selectedLanguage;
         set => _selectedLanguage = value;
     }
+
+    private string CurrentCulture => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
     protected override async Task OnInitializedAsync()
     {
