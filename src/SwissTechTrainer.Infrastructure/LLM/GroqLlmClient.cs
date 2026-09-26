@@ -175,6 +175,12 @@ public class GroqLlmClient(
 
                 return await httpClient.SendAsync(request, cancellation);
             }, ct);
+            
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                var errorBody = await httpResponse.Content.ReadAsStringAsync(ct);
+                logger.LogError("Groq error body: {ErrorBody}", errorBody);
+            }
 
             httpResponse.EnsureSuccessStatusCode();
 

@@ -11,9 +11,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - DatabaseProvider=Postgres
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=swisstechtrainer;Username=postgres;Password=postgres
-      - LLM__Provider=Mock
-      - LLM__ApiKey=${GROQ_API_KEY:-}
-      - LLM__Model=llama-3.3-70b-versatile
+      - LLM__Provider=Groq
+      - LLM__ApiKey=${GROQ_API_KEY}
+      - LLM__Model=openai/gpt-oss-120b
+      - LLM__Endpoint=https://api.groq.com/openai/v1
     depends_on:
       postgres:
         condition: service_healthy
